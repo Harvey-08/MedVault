@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Production
+dist/
+build/
+
+# Environment Variables
+.env*
+
+# Project Specific
+Backend/public/uploads/*
+!Backend/public/uploads/.gitkeep
+
+# Logs
+npm-debug.log*
+*.log
+
+# Editor folders
+.vscode/
