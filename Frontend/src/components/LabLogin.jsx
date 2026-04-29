@@ -109,10 +109,10 @@ const Login = () => {
                       id="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      type="email" autoComplete="nope"
+                      type="email"
                       placeholder="info@example.com"
                       aria-required="true"
-                      autoComplete="one-time-code"
+                      autoComplete="nope"
                     />
                   </div>
 
@@ -125,7 +125,7 @@ const Login = () => {
                       id="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      type="password" autoComplete="new-password"
+                      type="password"
                       placeholder="password"
                       aria-required="true"
                       autoComplete="new-password"

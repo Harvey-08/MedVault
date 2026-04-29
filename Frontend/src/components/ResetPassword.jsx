@@ -152,7 +152,7 @@ const ResetPassword = () => {
                 {validationErrors.password && <p style={{ color: 'white' }}>{validationErrors.password}</p>}
                 <div className="form-group text-start mb-4"><span>Enter New Password</span>
                   <label htmlFor="newPassword"><i className="lni lni-lock"></i></label>
-                  <input className="input-psswd form-control"   name="newPassword" id="newPassword" value={userData.newPassword} onChange={handleChange}  type="password" autoComplete="new-password" placeholder="New Password" autoComplete="new-password"/>
+                  <input className="input-psswd form-control"   name="newPassword" id="newPassword" value={userData.newPassword} onChange={handleChange}  type="password" autoComplete="new-password" placeholder="New Password" />
                 </div>
 
             

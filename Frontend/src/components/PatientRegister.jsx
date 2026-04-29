@@ -129,14 +129,14 @@ const PatientRegister = () => {
                 <div className="form-group text-start mb-4">
                   <span>Email</span>
                   <label htmlFor="email"><i className="lni lni-envelope"></i></label>
-                  <input className="form-control" name="email" id="email" value={userData.email} onChange={handleChange} type="email" autoComplete="nope" placeholder="Enter email id" autoComplete="one-time-code" />
+                  <input className="form-control" name="email" id="email" value={userData.email} onChange={handleChange} type="email" autoComplete="nope" placeholder="Enter email id" />
                 </div>
 
                 {validationErrors.password && <p style={{ color: 'white' }}>{validationErrors.password}</p>}
                 <div className="form-group text-start mb-4">
                   <span>Password</span>
                   <label htmlFor="password"><i className="lni lni-lock"></i></label>
-                  <input className="input-psswd form-control" name="password" id="password" value={userData.password} onChange={handleChange} type="password" autoComplete="new-password" placeholder="Password" autoComplete="new-password" />
+                  <input className="input-psswd form-control" name="password" id="password" value={userData.password} onChange={handleChange} type="password" autoComplete="new-password" placeholder="Password"  />
                 </div>
 
                 {validationErrors.phone && <p style={{ color: 'white' }}>{validationErrors.phone}</p>}
