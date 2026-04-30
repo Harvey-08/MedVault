@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import "./css/bootstrap.min.css";
 import "./css/owl.carousel.min.css";
 import "./css/font-awesome.min.css";
@@ -9,8 +9,9 @@ import "./css/lineicons.min.css";
 import "./css/magnific-popup.css";
 import "./css/style.css";
 import "./css/Table.css";
-import * as XLSX from 'xlsx';
-import "./js/jquery.min.js";  
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import "./js/jquery.min.js";
 import "./js/bootstrap.bundle.min.js";
 import imgEdit from "./img/pen.png";
 import imgDel from "./img/trash.png";
@@ -21,55 +22,55 @@ import Title from './Title.jsx';
 import { saveAs } from 'file-saver';
 
 const ViewPrescription = () => {
-  
+
   const navigate = useNavigate();
 
   const Removefunction = (id) => {
     if (window.confirm('Do you want to remove?')) {
       const token = localStorage.getItem('token');
 
-        fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/` + id, {
-            method: "DELETE",
-            headers: {
-              'Content-Type': 'application/json',
-         
-            },
-        }).then((res) => {
-          //  alert('Removed successfully.')
-            window.location.reload();
-        }).catch((err) => {
-            console.log(err.message)
-        })
+      fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/` + id, {
+        method: "DELETE",
+        headers: {
+          'Content-Type': 'application/json',
+
+        },
+      }).then((res) => {
+        //  alert('Removed successfully.')
+        window.location.reload();
+      }).catch((err) => {
+        console.log(err.message)
+      })
     }
-}
-
-const MoreInfo = (id) => {
-  navigate("/more_info/" + id);
-}
-
-const setCookie = (name, value, days) => {
-  let expires = '';
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    expires = `; expires=${date.toUTCString()}`;
   }
-  document.cookie = `${name}=${value || ''}${expires}; path=/`;
-};
 
-const bill = (patemail,hospitalemail,patient_name) => {
-  // Set a cookie for the hospital's email
-  setCookie('patemail', patemail, 7);
-  setCookie('hospitalemail', hospitalemail, 7);
-  setCookie('patient_name', patient_name, 7);
-  // Navigate to the appointment booking page
-  navigate("/post_billing/");
-}
+  const MoreInfo = (id) => {
+    navigate("/more_info/" + id);
+  }
+
+  const setCookie = (name, value, days) => {
+    let expires = '';
+    if (days) {
+      const date = new Date();
+      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+      expires = `; expires=${date.toUTCString()}`;
+    }
+    document.cookie = `${name}=${value || ''}${expires}; path=/`;
+  };
+
+  const bill = (patemail, hospitalemail, patient_name) => {
+    // Set a cookie for the hospital's email
+    setCookie('patemail', patemail, 7);
+    setCookie('hospitalemail', hospitalemail, 7);
+    setCookie('patient_name', patient_name, 7);
+    // Navigate to the appointment booking page
+    navigate("/post_billing/");
+  }
 
 
-const LoadEdit = (id) => {
-  navigate("/update_prescription/" + id);
-}
+  const LoadEdit = (id) => {
+    navigate("/update_prescription/" + id);
+  }
   const [prescriptionData, setPrescriptionData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
@@ -83,11 +84,11 @@ const LoadEdit = (id) => {
 
         // Assuming 'adminemail' is the key in cookies
         const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-         // Filter prescription data based on adminemail
-         const filteredPrescription = data.filter((prescription) => prescription.hospitalemail === hospitalemail);
-         setPrescriptionData(filteredPrescription);
-         setFilteredData(filteredPrescription);
-         setLoading(false);
+        // Filter prescription data based on adminemail
+        const filteredPrescription = data.filter((prescription) => prescription.hospitalemail === hospitalemail);
+        setPrescriptionData(filteredPrescription);
+        setFilteredData(filteredPrescription);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching prescription data:', error.message);
         setLoading(false);
@@ -97,31 +98,21 @@ const LoadEdit = (id) => {
     fetchPrescriptionData();
   }, []);
 
-  const exportToExcel = () => {
-    const csvData = filteredData.map(row => ({
-
-      patientname:row.patient_name,
-      patientemail:row.patemail,
-      doctorname:row.doctor_name,
-      findings: row.findings,
-      medicine1: row.medicine_1,
-      medicine2: row.medicine_2,
-      medicine3: row.medicine_3,
-      medicine4: row.medicine_4,
-      notes: row.notes
-    }));
-
-  
-    // Convert JSON data to worksheet
-    const worksheet = XLSX.utils.json_to_sheet(csvData);
-    // Create a new workbook and append the worksheet
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-    // Generate a buffer
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    // Convert buffer to Blob and trigger download
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, 'table_data.xlsx');
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Prescription Details', 14, 15);
+    autoTable(doc, {
+      startY: 22,
+      head: [['Patient Name', 'Patient Email', 'Doctor', 'Findings', 'Medicine 1', 'Medicine 2', 'Medicine 3', 'Medicine 4', 'Notes']],
+      body: filteredData.map(row => [
+        row.patient_name, row.patemail, row.doctor_name, row.findings,
+        row.medicine_1, row.medicine_2, row.medicine_3, row.medicine_4, row.notes
+      ]),
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+    doc.save('prescriptions.pdf');
   };
 
 
@@ -136,165 +127,165 @@ const LoadEdit = (id) => {
     );
     setFilteredData(filtered);
   };
-  
+
   if (loading) {
     return <div>Loading...</div>;
   }
-  
+
   return (
     <div>
-        <div>
-      
+      <div>
+
         <div className="header-area" id="headerArea">
-        <div className="container h-100 d-flex align-items-center justify-content-between">
-    
-        <div className="header-area" id="headerArea">
-        <div className="container h-100 d-flex align-items-center justify-content-between">
-            <div className="logo-wrapper" style={{color:'#020310'}}><img src={imgSmall} alt=""/> <Title /> </div>
-        
-            <div className="suha-navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#suhaOffcanvas" aria-controls="suhaOffcanvas"><span></span><span></span><span></span></div>
-        </div>
-        </div>  
+          <div className="container h-100 d-flex align-items-center justify-content-between">
 
-{/* taprescriptiondex="-1" */}
-        <div className="offcanvas offcanvas-start suha-offcanvas-wrap"  id="suhaOffcanvas" aria-labelledby="suhaOffcanvasLabel">
-      <button className="btn-close btn-close-white text-reset" type="button" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            <div className="header-area" id="headerArea">
+              <div className="container h-100 d-flex align-items-center justify-content-between">
+                <div className="logo-wrapper" style={{ color: '#020310' }}><img src={imgSmall} alt="" /> <Title /> </div>
 
-      <div className="offcanvas-body">
-        <div className="sidenav-profile">
-          <div className="user-profile"><img src={imgBg} alt=""/></div>
-          <div className="user-info">
-            <h6 className="user-name mb-1">Hospital Booking App</h6>
-         
-          </div>
-        </div>
-    
-        <ul className="sidenav-nav ps-0">
-          <li><Link to="/hospital_home"><i className="lni lni-home"></i>Home</Link></li>
-          <li><Logout /></li>  
-          </ul>
-      </div>
-    </div>
-      </div>
-    </div>
-    <div className="page-content-wrapper">
-      <div className="top-products-area py-3">
-        <div className="container">
-          
-        <div className="section-heading d-flex align-items-center justify-content-between">
-            <h6>View Prescription details</h6>
-			
-          </div>
-          <div className="row g-3" >
-              <div className="top-search-form">
-                <form>
-
-                  <input className="form-control"  type="text"  placeholder="Search..."     value={searchTerm}
-                  onChange={(e) => handleSearch(e.target.value)}  />
-                  <button type="submit"><i className="fa fa-search"></i></button>                
-                </form>
+                <div className="suha-navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#suhaOffcanvas" aria-controls="suhaOffcanvas"><span></span><span></span><span></span></div>
               </div>
             </div>
-       
-            <button onClick={exportToExcel}>Export</button>
-             
-                <div class="row" id='printablediv'>
-                <div className="table-responsive mt-8">
-  <table id="tblData" className="table table-hover">
-    <thead className="bg-light text-center">
-    <tr>
-    <th scope="col" >S.No</th>
-  
-      <th scope="col" >Patient Name</th>
-      <th scope="col" >Findings</th>
-      <th scope="col" >Medicine 1</th>
-   
-      <th scope="col" >       2</th>
-      <th scope="col" >       3</th>
-      <th scope="col" >       4</th>
-      <th scope="col" >Lab Test</th>
-      <th scope="col" >Notes</th>
-      <th scope="col" >Bill</th>
-      
-      <th scope="col" >More Info</th>
-    
-      <th scope="col">Edit</th>
-      <th scope="col">Delete</th>
-      
-    </tr>
-  </thead>
-  <tbody className="text-center">
-    {filteredData.map((prescription, index) => (
-      <tr key={prescription._id}>
-        <td>{index + 1}</td>
-        <td>{prescription.patient_name}</td>
-      
-        <td>{prescription.findings}</td>
-     <td>{prescription.medicine_1}</td>
-     <td>{prescription.medicine_2}</td>
-     <td>{prescription.medicine_3}</td>
-     <td>{prescription.medicine_4}</td>
-     <td>{prescription.lab_test}</td>
-     
-     <td>{prescription.notes}</td>
-     <td>
-          <a className="btn btn-danger" onClick={() => bill(prescription.patemail,prescription.hospitalemail,prescription.patient_name)}>
-            Update Bill
-          </a>
-        </td>
-      
-        <td>
-          <a className="btn btn-danger" onClick={() => MoreInfo(prescription.id)}>
-            Click
-          </a>
-        </td>
-      
-       <td>
-          <a onClick={() => LoadEdit(prescription.id)}>
-            <img src={imgEdit} alt="Edit" />
-          </a>
-        </td>
-        <td>
-          <a onClick={() => Removefunction(prescription.id)}>
-            <img src={imgDel} alt="Delete" />
-          </a>
-        </td>
-     
-      </tr>
-    ))}
-   
-    </tbody>
-  </table>
-</div>
 
-    </div>          
+            {/* taprescriptiondex="-1" */}
+            <div className="offcanvas offcanvas-start suha-offcanvas-wrap" id="suhaOffcanvas" aria-labelledby="suhaOffcanvasLabel">
+              <button className="btn-close btn-close-white text-reset" type="button" data-bs-dismiss="offcanvas" aria-label="Close"></button>
 
-   
-          
+              <div className="offcanvas-body">
+                <div className="sidenav-profile">
+                  <div className="user-profile"><img src={imgBg} alt="" /></div>
+                  <div className="user-info">
+                    <h6 className="user-name mb-1">Hospital Booking App</h6>
 
+                  </div>
+                </div>
+
+                <ul className="sidenav-nav ps-0">
+                  <li><Link to="/hospital_home"><i className="lni lni-home"></i>Home</Link></li>
+                  <li><Logout /></li>
+                </ul>
+              </div>
+            </div>
+          </div>
         </div>
-    </div>
+        <div className="page-content-wrapper">
+          <div className="top-products-area py-3">
+            <div className="container">
 
+              <div className="section-heading d-flex align-items-center justify-content-between">
+                <h6>View Prescription details</h6>
 
-            
-            <div className="footer-nav-area" id="footerNav">
-              <div className="container h-100 px-0">
-                <div className="suha-footer-nav h-100">
-                  <ul className="h-100 d-flex align-items-center justify-content-between ps-0">
-                    <li className="active"> <Link to="/hospital_home" ><i className="lni lni-home"></i>Home </Link> </li>
-                    <li><Logout /></li> 
-                  </ul>
+              </div>
+              <div className="row g-3" >
+                <div className="top-search-form">
+                  <form>
+
+                    <input className="form-control" type="text" placeholder="Search..." value={searchTerm}
+                      onChange={(e) => handleSearch(e.target.value)} />
+                    <button type="submit"><i className="fa fa-search"></i></button>
+                  </form>
                 </div>
               </div>
+
+              <button className="btn btn-primary mb-3" onClick={exportToPDF}>Export PDF</button>
+
+              <div class="row" id='printablediv'>
+                <div className="table-responsive mt-8">
+                  <table id="tblData" className="table table-hover">
+                    <thead className="bg-light text-center">
+                      <tr>
+                        <th scope="col" >S.No</th>
+
+                        <th scope="col" >Patient Name</th>
+                        <th scope="col" >Findings</th>
+                        <th scope="col" >Medicine 1</th>
+
+                        <th scope="col" >       2</th>
+                        <th scope="col" >       3</th>
+                        <th scope="col" >       4</th>
+                        <th scope="col" >Lab Test</th>
+                        <th scope="col" >Notes</th>
+                        <th scope="col" >Bill</th>
+
+                        <th scope="col" >More Info</th>
+
+                        <th scope="col">Edit</th>
+                        <th scope="col">Delete</th>
+
+                      </tr>
+                    </thead>
+                    <tbody className="text-center">
+                      {filteredData.map((prescription, index) => (
+                        <tr key={prescription._id}>
+                          <td>{index + 1}</td>
+                          <td>{prescription.patient_name}</td>
+
+                          <td>{prescription.findings}</td>
+                          <td>{prescription.medicine_1}</td>
+                          <td>{prescription.medicine_2}</td>
+                          <td>{prescription.medicine_3}</td>
+                          <td>{prescription.medicine_4}</td>
+                          <td>{prescription.lab_test}</td>
+
+                          <td>{prescription.notes}</td>
+                          <td>
+                            <a className="btn btn-danger" onClick={() => bill(prescription.patemail, prescription.hospitalemail, prescription.patient_name)}>
+                              Update Bill
+                            </a>
+                          </td>
+
+                          <td>
+                            <a className="btn btn-danger" onClick={() => MoreInfo(prescription.id)}>
+                              Click
+                            </a>
+                          </td>
+
+                          <td>
+                            <a onClick={() => LoadEdit(prescription.id)}>
+                              <img src={imgEdit} alt="Edit" />
+                            </a>
+                          </td>
+                          <td>
+                            <a onClick={() => Removefunction(prescription.id)}>
+                              <img src={imgDel} alt="Delete" />
+                            </a>
+                          </td>
+
+                        </tr>
+                      ))}
+
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+
+
+
+
             </div>
+          </div>
 
 
 
-</div>
+          <div className="footer-nav-area" id="footerNav">
+            <div className="container h-100 px-0">
+              <div className="suha-footer-nav h-100">
+                <ul className="h-100 d-flex align-items-center justify-content-between ps-0">
+                  <li className="active"> <Link to="/hospital_home" ><i className="lni lni-home"></i>Home </Link> </li>
+                  <li><Logout /></li>
+                </ul>
+              </div>
+            </div>
+          </div>
 
 
-</div>
-</div>
+
+        </div>
+
+
+      </div>
+    </div>
   )
 }
 

@@ -9,7 +9,8 @@ import "./css/lineicons.min.css";
 import "./css/magnific-popup.css";
 import "./css/style.css";
 import "./css/Table.css";
-import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import "./js/jquery.min.js";  
 import "./js/bootstrap.bundle.min.js";
 import imgEdit from "./img/pen.png";
@@ -49,31 +50,21 @@ const ViewMyBilling = () => {
     fetchBillingData();
   }, []);
 
-  const exportToExcel = () => {
-    const csvData = filteredData.map(row => ({
-
-      patientname:row.patient_name,
-      patientemail:row.patemail,
-      doctorname:row.doctor_name,
-      findings: row.findings,
-      medicine1: row.medicine_1,
-      medicine2: row.medicine_2,
-      medicine3: row.medicine_3,
-      medicine4: row.medicine_4,
-      notes: row.notes
-    }));
-
-  
-    // Convert JSON data to worksheet
-    const worksheet = XLSX.utils.json_to_sheet(csvData);
-    // Create a new workbook and append the worksheet
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
-    // Generate a buffer
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    // Convert buffer to Blob and trigger download
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, 'table_data.xlsx');
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('My Billing Details', 14, 15);
+    autoTable(doc, {
+      startY: 22,
+      head: [['Patient Name', 'Patient Email', 'Hospital Email', 'Amount', 'Amount Paid', 'Balance']],
+      body: filteredData.map(row => [
+        row.patient_name, row.patemail, row.hospitalemail,
+        row.amount, row.amount_paid, row.balance
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+    doc.save('my_billing.pdf');
   };
 
 
@@ -148,7 +139,7 @@ const ViewMyBilling = () => {
               </div>
             </div>
        
-            <button onClick={exportToExcel}>Export</button>
+            <button className="btn btn-primary mb-3" onClick={exportToPDF}>Export PDF</button>
              
                 <div class="row" id='printablediv'>
                 <div className="table-responsive mt-8">

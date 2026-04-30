@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 import Logout from './Logout.jsx'; // Import your Logout component
 import Title from './Title.jsx'; // Import Title component if necessary
@@ -13,7 +14,7 @@ import imgBg from "./img/bg-img/9.png";
 
 const ViewMyLabtest = () => {
   const navigate = useNavigate();
-  
+
   const [labtestData, setLabtestData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState([]);
@@ -63,25 +64,22 @@ const ViewMyLabtest = () => {
     saveAs(fileUrl, fileName);
   };
 
-  // Export data to Excel
-  const exportToExcel = () => {
-    const csvData = filteredData.map(row => ({
-      hospitalemail: row.hospitalemail,
-      labemail: row.labemail,
-      patient_name: row.patient_name,
-      test_name: row.test_name,
-      range: row.range,
-      actual_range: row.actual_range,
-      level: row.level,
-      date: row.date,
-    }));
-    
-    const worksheet = XLSX.utils.json_to_sheet(csvData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Lab Tests');
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-    saveAs(blob, 'lab_tests.xlsx');
+  // Export data to PDF
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('My Lab Tests', 14, 15);
+    autoTable(doc, {
+      startY: 22,
+      head: [['Hospital Email', 'Lab Email', 'Patient Name', 'Test', 'Range', 'Actual Range', 'Level', 'Date']],
+      body: filteredData.map(row => [
+        row.hospitalemail, row.labemail, row.patient_name, row.test_name,
+        row.range, row.actual_range, row.level, row.date
+      ]),
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+    doc.save('my_lab_tests.pdf');
   };
 
   // Search function
@@ -100,47 +98,47 @@ const ViewMyLabtest = () => {
   }
 
   return (
-    
-        <div>
-      
-        <div className="header-area" id="headerArea">
-        <div className="container h-100 d-flex align-items-center justify-content-between">
-    
-        <div className="header-area" id="headerArea">
-        <div className="container h-100 d-flex align-items-center justify-content-between">
-            <div className="logo-wrapper" style={{color:'#020310'}}><img src={imgSmall} alt=""/> <Title /> </div>
-        
-            <div className="suha-navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#suhaOffcanvas" aria-controls="suhaOffcanvas"><span></span><span></span><span></span></div>
-        </div>
-        </div>  
 
-{/* tabindex="-1" */}
-        <div className="offcanvas offcanvas-start suha-offcanvas-wrap"  id="suhaOffcanvas" aria-labelledby="suhaOffcanvasLabel">
-      <button className="btn-close btn-close-white text-reset" type="button" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <div>
 
-      <div className="offcanvas-body">
-        <div className="sidenav-profile">
-          <div className="user-profile"><img src={imgBg} alt=""/></div>
-          <div className="user-info">
-            <h6 className="user-name mb-1">Hospital Booking App
-            </h6>
-         
+      <div className="header-area" id="headerArea">
+        <div className="container h-100 d-flex align-items-center justify-content-between">
+
+          <div className="header-area" id="headerArea">
+            <div className="container h-100 d-flex align-items-center justify-content-between">
+              <div className="logo-wrapper" style={{ color: '#020310' }}><img src={imgSmall} alt="" /> <Title /> </div>
+
+              <div className="suha-navbar-toggler" data-bs-toggle="offcanvas" data-bs-target="#suhaOffcanvas" aria-controls="suhaOffcanvas"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+
+          {/* tabindex="-1" */}
+          <div className="offcanvas offcanvas-start suha-offcanvas-wrap" id="suhaOffcanvas" aria-labelledby="suhaOffcanvasLabel">
+            <button className="btn-close btn-close-white text-reset" type="button" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+
+            <div className="offcanvas-body">
+              <div className="sidenav-profile">
+                <div className="user-profile"><img src={imgBg} alt="" /></div>
+                <div className="user-info">
+                  <h6 className="user-name mb-1">Hospital Booking App
+                  </h6>
+
+                </div>
+              </div>
+
+              <ul className="sidenav-nav ps-0">
+                <li><Link to="/lab_home"><i className="lni lni-home"></i>Home</Link></li>
+                <li><Logout /></li>
+              </ul>
+            </div>
           </div>
         </div>
-    
-        <ul className="sidenav-nav ps-0">
-          <li><Link to="/lab_home"><i className="lni lni-home"></i>Home</Link></li>
-          <li><Logout /></li>  
-          </ul>
       </div>
-    </div>
-      </div>
-    </div>
       {/* Page Content */}
       <div className="page-content-wrapper">
         <div className="container">
           <h6>View Patient's Lab Reports</h6>
-          
+
           {/* Search and Export Section */}
           <input
             className="form-control mb-3"
@@ -149,8 +147,8 @@ const ViewMyLabtest = () => {
             value={searchTerm}
             onChange={(e) => handleSearch(e.target.value)}
           />
-          <button className="btn btn-primary mb-3" onClick={exportToExcel}>Export</button>
-          
+          <button className="btn btn-primary mb-3" onClick={exportToPDF}>Export PDF</button>
+
           {/* Table Section */}
           <div className="table-responsive">
             <table className="table table-hover">
@@ -187,11 +185,11 @@ const ViewMyLabtest = () => {
                       </a>
                     </td>
                     <td>
-                      <a onClick={() =>  download(labtest.report)}>
+                      <a onClick={() => download(labtest.report)}>
                         <img src={imgDown} alt="Delete" />
                       </a>
                     </td>
-                
+
                   </tr>
                 ))}
               </tbody>
