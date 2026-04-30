@@ -100,7 +100,7 @@ router.post('/', upload.single('report'), async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const labtest = await Labtest.findByIdAndRemove(req.params.id);
+    const labtest = await Labtest.findByIdAndDelete(req.params.id);
     if (!labtest) return res.status(404).json({ success: false, message: 'Labtest not found!' });
     res.status(200).json({ success: true, message: 'The labtest is deleted!' });
   } catch (error) {

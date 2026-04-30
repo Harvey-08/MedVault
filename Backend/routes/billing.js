@@ -43,7 +43,7 @@ router.post('/', async (req,res)=>{
 
 
 router.delete('/:id', (req, res)=>{
-  Billing.findByIdAndRemove(req.params.id).then(billing =>{
+  Billing.findByIdAndDelete(req.params.id).then(billing =>{
       if(billing) {
           return res.status(200).json({success: true, message: 'the billing is deleted!'})
       } else {

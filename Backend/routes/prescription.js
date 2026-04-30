@@ -58,7 +58,7 @@ router.post('/',   async (req,res)=>{
 
 
 router.delete('/:id', (req, res)=>{
-    Prescription.findByIdAndRemove(req.params.id).then(prescription =>{
+    Prescription.findByIdAndDelete(req.params.id).then(prescription =>{
         if(prescription) {
             return res.status(200).json({success: true, message: 'the prescription is deleted!'})
         } else {

@@ -97,7 +97,7 @@ const ViewMyAppointment = () => {
             {/* Search Form */}
             <div className="row g-3">
               <div className="top-search-form">
-                <form onSubmit={(e) = autoComplete="off"> e.preventDefault()}>
+                <form onSubmit={(e) => e.preventDefault()} autoComplete="off">
                   <input 
                     className="form-control" 
                     type="text" 

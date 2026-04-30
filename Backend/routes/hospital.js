@@ -74,7 +74,7 @@ router.post('/', async (req,res)=>{
 
 
 router.delete('/:id', (req, res)=>{
-    Hospital.findByIdAndRemove(req.params.id).then(hospital =>{
+    Hospital.findByIdAndDelete(req.params.id).then(hospital =>{
         if(hospital) {
             return res.status(200).json({success: true, message: 'the hospital is deleted!'})
         } else {

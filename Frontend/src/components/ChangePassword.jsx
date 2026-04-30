@@ -68,9 +68,9 @@ const ChangePassword = () => {
                     id="email" 
                     value={userData.email} 
                     onChange={handleChange} 
-                    type="email" autoComplete="nope" 
+                    type="email"
+                    autoComplete="one-time-code" 
                     placeholder="Enter email id" 
-                    autoComplete="one-time-code"
                   />
                 </div>
 
@@ -83,9 +83,9 @@ const ChangePassword = () => {
                     id="oldPassword" 
                     value={userData.oldPassword} 
                     onChange={handleChange} 
-                    type="password" autoComplete="new-password" 
+                    type="password"
+                    autoComplete="off" 
                     placeholder="Enter old password" 
-                    autoComplete="off"
                   />
                 </div>
 
@@ -98,9 +98,9 @@ const ChangePassword = () => {
                     id="newPassword" 
                     value={userData.newPassword} 
                     onChange={handleChange} 
-                    type="password" autoComplete="new-password" 
+                    type="password"
+                    autoComplete="new-password" 
                     placeholder="Enter new password" 
-                    autoComplete="new-password"
                   />
                 </div>
 

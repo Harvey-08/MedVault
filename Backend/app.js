@@ -3,6 +3,7 @@ const app = express();
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 mongoose.pluralize(null);
+mongoose.set('strictQuery', false);
 const cors = require('cors');
 
 
@@ -58,9 +59,6 @@ app.use(`${api}/prescription`, prescriptionRoutes);
 const connectionString = process.env.CONNECTION_STRING || 'mongodb://127.0.0.1:27017/';
 
 mongoose.connect(connectionString, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    useFindAndModify: false, // Add this line
     dbName: 'Hospital_App'
 })
 .then(()=>{

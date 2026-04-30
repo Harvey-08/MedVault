@@ -133,7 +133,7 @@ const ResetPassword = () => {
 
                         <div className="form-group text-start mb-4"><span>Email</span>
                   <label htmlFor="email"><i className="lni lni-envelope"></i></label>
-                  <input className="form-control" name="email" id="email" value={userData.email} onChange={handleChange}  type="email" autoComplete="nope" placeholder="Enter email id" autoComplete="one-time-code"/>
+                  <input className="form-control" name="email" id="email" value={userData.email} onChange={handleChange}  type="email" placeholder="Enter email id" autoComplete="one-time-code"/>
                         </div>
 
 

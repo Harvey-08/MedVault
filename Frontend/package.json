@@ -14,12 +14,13 @@
     "bootstrap": "^5.3.3",
     "file-saver": "^2.0.5",
     "js-cookie": "^3.0.5",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.7",
     "jwt-decode": "^4.0.0",
     "react": "^18.2.0",
-    "react-cookie": "^6.1.1",
+    "react-cookie": "^7.2.2",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.20.1",
-    "xlsx": "^0.18.5"
+    "react-router-dom": "^6.20.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",
@@ -35,5 +36,8 @@
   "main": "index.js",
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "overrides": {
+    "esbuild": "^0.25.0"
+  }
 }

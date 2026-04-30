@@ -75,7 +75,7 @@ router.post('/lab', async (req, res) => {
 
 router.delete('/:id', (req, res) => {
     User
-        .findByIdAndRemove(req.params.id).then(prescription => {
+        .findByIdAndDelete(req.params.id).then(prescription => {
             if (prescription) {
                 return res.status(200).json({ success: true, message: 'the user is deleted!' })
             } else {

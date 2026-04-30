@@ -139,7 +139,7 @@ router.put('/status/:id',  async (req, res)=> {
 // Delete an appointment
 router.delete('/:id', async (req, res) => {
   try {
-    const appointment = await Appointment.findByIdAndRemove(req.params.id);
+    const appointment = await Appointment.findByIdAndDelete(req.params.id);
     if (!appointment) return res.status(404).json({ success: false, message: 'Appointment not found!' });
     res.status(200).json({ success: true, message: 'The appointment has been deleted!' });
   } catch (error) {
