@@ -45,6 +45,8 @@ Start the server:
 npm start
 ```
 
+> **Note:** Make sure to manually create a folder named `uploads` inside `Backend/public/` to store patient lab reports.
+
 ### 3. Setup the Frontend
 Open a new terminal, navigate to the **Frontend** folder:
 ```bash
