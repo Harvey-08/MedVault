@@ -45,6 +45,15 @@ Start the server:
 npm start
 ```
 
+**Seed the Database (Admin Credentials):**
+Before starting the server for the first time, run the seed script to create the default Admin account:
+```bash
+npm run seed
+```
+> **Default Admin Credentials:**
+> - **Email:** `admin@gmail.com`
+> - **Password:** `admin#2387`
+
 > **Note:** Make sure to manually create a folder named `uploads` inside `Backend/public/` to store patient lab reports.
 
 ### 3. Setup the Frontend
