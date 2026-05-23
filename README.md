@@ -1,6 +1,6 @@
-# MedVault - Hospital Management System
+# MedVault - Healthcare Appointment & Management Platform
 
-MedVault is a comprehensive Hospital Management System built using the MERN stack. It provides a seamless interface for Patients, Hospitals, Lab Technicians, and Administrators to manage healthcare operations efficiently.
+MedVault is a comprehensive Healthcare Appointment & Management Platform built using the MERN stack. It provides a seamless interface for Patients, Hospitals, Lab Technicians, and Administrators to manage healthcare operations efficiently.
 
 ##  Key Features
 
