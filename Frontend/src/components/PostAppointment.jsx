@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import "./css/bootstrap.min.css";
 import imgSmall from "./img/core-img/logo-small.png";
@@ -8,16 +8,15 @@ import Logout from './Logout.jsx';
 import Title from './Title.jsx';
 
 const PostAppointment = () => {
-  const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-  const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-  const doctor_name = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)doctor_name\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-  const name = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)name\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+  const location = useLocation();
+  const { hospitalemail = '', name = '', doctor_name = '' } = location.state || {};
+  const patemail = localStorage.getItem('email') || '';
 
   const [appointment, setAppointment] = useState({
     patemail: patemail || '',
     hospitalemail: hospitalemail || '',
     patient_name: '',
-    doctor_name: '',
+    doctor_name: doctor_name || '',
     reason: '',
     appointment_date: '',
     timeslot: '',

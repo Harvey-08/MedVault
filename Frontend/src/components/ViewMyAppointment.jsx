@@ -17,17 +17,15 @@ const ViewMyAppointment = () => {
   useEffect(() => {
     const fetchAppointmentData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/appointment/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/appointment/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
-
-        // Get patient email from cookies
-        const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-
-        // Filter appointments based on patient email
-        const filteredAppointments = data.filter((appointment) => appointment.patemail === patemail);
-        
-        setAppointmentData(filteredAppointments);
-        setFilteredData(filteredAppointments);
+        setAppointmentData(data);
+        setFilteredData(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching appointment data:', error);

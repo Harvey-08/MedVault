@@ -42,7 +42,11 @@ const EditHospitalProfile = () => {
   useEffect(() => {
     const fetchHospitalDetails = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/${id}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/${id}`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           setEditedHospital({
@@ -91,7 +95,7 @@ const EditHospitalProfile = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        //  'x-auth-token': token,
+          'x-auth-token': token,
         },
         body: JSON.stringify(editedHospital),
       });

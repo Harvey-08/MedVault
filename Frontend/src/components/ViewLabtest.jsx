@@ -22,12 +22,15 @@ const ViewLabtest = () => {
   useEffect(() => {
     const fetchLabtestData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        const filteredLabtest = data.filter((labtest) => labtest.hospitalemail === hospitalemail);
-        setLabtestData(filteredLabtest);
-        setFilteredData(filteredLabtest);
+        setLabtestData(data);
+        setFilteredData(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching labtest data:', error.message);

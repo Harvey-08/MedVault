@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import "./css/bootstrap.min.css";
 import "./css/owl.carousel.min.css";
 import "./css/font-awesome.min.css";
@@ -16,6 +16,7 @@ import Logout from './Logout.jsx';
 import Title from './Title.jsx';
 
 const PostPrescription = () => {
+  const location = useLocation();
   const [formData, setFormData] = useState({
     patemail: '',
     hospitalemail: '',
@@ -31,17 +32,9 @@ const PostPrescription = () => {
   });
   const [validationErrors, setValidationErrors] = useState({});
 
-  // Utility function to get a cookie value
-  const getCookie = (name) => {
-    return decodeURIComponent(document.cookie.replace(new RegExp(`(?:(?:^|.*;\\s*)${name}\\s*=\\s*([^;]*).*$)|^.*$`), '$1'));
-  };
-
-  // Populate formData from cookies when component mounts
+  // Populate formData from router state when component mounts
   useEffect(() => {
-    const hospitalemail = getCookie('hospitalemail');
-    const patemail = getCookie('patemail');
-    const patient_name = getCookie('patient_name');
-    const doctor_name = getCookie('doctor_name');
+    const { hospitalemail = '', patemail = '', patient_name = '', doctor_name = '' } = location.state || {};
 
     setFormData((prevData) => ({
       ...prevData,
@@ -50,7 +43,7 @@ const PostPrescription = () => {
       patient_name,
       doctor_name,
     }));
-  }, []);
+  }, [location.state]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -95,6 +88,7 @@ const PostPrescription = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-auth-token': localStorage.getItem('token')
         },
         body: JSON.stringify(formData),
       });
@@ -104,10 +98,12 @@ const PostPrescription = () => {
         alert('Created successfully');
         window.location.href = '/view_prescription';
       } else {
-        console.error('Error posting Prescription data:', response.statusText);
+        const errorData = await response.json();
+        alert(errorData.error || errorData.message || 'Error posting Prescription data.');
       }
     } catch (error) {
       console.error('Error posting Prescription data:', error.message);
+      alert('Error: ' + error.message);
     }
   };
 

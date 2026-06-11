@@ -1,5 +1,5 @@
 import React, { useState ,useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import "./css/bootstrap.min.css";
 import "./css/owl.carousel.min.css";
 import "./css/font-awesome.min.css";
@@ -14,6 +14,7 @@ import Logout from './Logout.jsx';
 import Title from './Title.jsx';
 
 const PostBilling = () => {
+    const location = useLocation();
     const [formData, setFormData] = useState({
       patemail:  '',
       hospitalemail: '',
@@ -21,29 +22,20 @@ const PostBilling = () => {
       amount:  '',
       amount_paid:  '',
       balance:  '',
-   
     });
     const [validationErrors, setValidationErrors] = useState({});
   
-    // Utility function to get a cookie value
-    const getCookie = (name) => {
-      return decodeURIComponent(document.cookie.replace(new RegExp(`(?:(?:^|.*;\\s*)${name}\\s*=\\s*([^;]*).*$)|^.*$`), '$1'));
-    };
-  
-    // Populate formData from cookies when component mounts
+    // Populate formData from router state when component mounts
     useEffect(() => {
-      const hospitalemail = getCookie('hospitalemail');
-      const patemail = getCookie('patemail');
-      const patient_name = getCookie('patient_name');
+      const { hospitalemail = '', patemail = '', patient_name = '' } = location.state || {};
      
       setFormData((prevData) => ({
         ...prevData,
         hospitalemail,
         patemail,
         patient_name,
-      
       }));
-    }, []);
+    }, [location.state]);
   
     const handleInputChange = (e) => {
       const { name, value } = e.target;
@@ -80,10 +72,12 @@ const PostBilling = () => {
   
     const postBillingData = async () => {
       try {
+        const token = localStorage.getItem('token');
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/billing/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'x-auth-token': token,
           },
           body: JSON.stringify(formData),
         });

@@ -33,7 +33,10 @@ const UpdateStatusAppointment = () => {
   useEffect(() => {
     const fetchStatusDetails = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/appointment/${id}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/appointment/${id}`, {
+          headers: { 'x-auth-token': token }
+        });
         if (response.ok) {
           const data = await response.json();
           setEditedStatus({
@@ -64,11 +67,12 @@ const UpdateStatusAppointment = () => {
     e.preventDefault();
     try {
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/appointment/status/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        //  'x-auth-token': token,
+          'x-auth-token': token,
         },
         body: JSON.stringify(editedStatus),
       });

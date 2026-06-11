@@ -106,6 +106,19 @@ const AdminHome = () => {
               </div>
             </div>
             </div>
+
+            <div className="row g-3" style={{marginTop: 5}}>
+            <div className="col-6 col-md-12">
+              <div className="card horizontal-product-card">
+                <div className="card-body d-flex align-items-center">
+                  <div className="card-body"><img src={imgRequest} className="img-fluid" style={{width:64, height:64}} />
+                  <Link  className="text-success" to="/view_audit_logs">
+                  System Audit Logs </Link> 
+                    </div>
+                </div>
+              </div>
+            </div>
+            </div>
       
 
             </div>

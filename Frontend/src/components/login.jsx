@@ -9,16 +9,14 @@ import "./css/lineicons.min.css";
 import "./css/magnific-popup.css";
 import "./css/style.css";
 import imgfolder from "./img/login.png";
-import { useCookies } from 'react-cookie';
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [cookies, setCookie] = useCookies(['email']); // Use cookies to store the email
   const [password, setPassword] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
-  const role = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)role\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+  const role = localStorage.getItem('expectedRole') || '';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -48,18 +46,18 @@ const Login = () => {
           return;
         }
 
-        // Store token
+        // Store token, role, and email
         localStorage.setItem('token', token);
+        localStorage.setItem('role', actualRole);
+        localStorage.setItem('email', email);
         axios.defaults.headers.common['x-auth-token'] = token;
 
         // Navigate based on role
         switch (actualRole) {
           case 'Hospital':
-            setCookie('hospitalemail', email, { path: '/', sameSite: 'strict' });
             navigate('/hospital_home');
             break;
           case 'Patient':
-            setCookie('patemail', email, { path: '/', sameSite: 'strict' });
             navigate('/patient_home');
             break;
           default:

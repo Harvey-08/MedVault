@@ -34,8 +34,8 @@ const ViewMyFeedback = () => {
         const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/feedback/`);
         const data = await response.json();
 
-        // Assuming 'useremail' is the key in cookies
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+        // Retrieve hospitalemail from localStorage
+        const hospitalemail = localStorage.getItem('email') || '';
          // Filter feedback data based on useremail
          const filteredFeedback = data.filter((feedback) => feedback.hospitalemail === hospitalemail);
          setFeedbackData(filteredFeedback);

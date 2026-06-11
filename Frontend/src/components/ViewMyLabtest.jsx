@@ -12,6 +12,29 @@ import imgDown from "./img/download.png"; // Image for delete icon
 import imgSmall from "./img/core-img/logo-small.png";
 import imgBg from "./img/bg-img/9.png";
 
+const getAlertClass = (level, range, actualRange) => {
+  if (!level) return '';
+  const lowerLevel = level.toLowerCase();
+  if (lowerLevel.includes('high') || lowerLevel.includes('low') || lowerLevel.includes('abnormal') || lowerLevel.includes('critical') || lowerLevel.includes('out of range')) {
+    return 'badge bg-danger';
+  }
+  if (range && actualRange) {
+    const rangeMatch = range.match(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/);
+    const val = parseFloat(actualRange);
+    if (rangeMatch && !isNaN(val)) {
+      const min = parseFloat(rangeMatch[1]);
+      const max = parseFloat(rangeMatch[2]);
+      if (val < min || val > max) {
+        return 'badge bg-danger';
+      }
+    }
+  }
+  if (lowerLevel.includes('normal')) {
+    return 'badge bg-success';
+  }
+  return 'badge bg-secondary';
+};
+
 const ViewMyLabtest = () => {
   const navigate = useNavigate();
 
@@ -24,12 +47,15 @@ const ViewMyLabtest = () => {
   useEffect(() => {
     const fetchLabtestData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
-        const labemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)labemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        const filteredLabtest = data.filter((labtest) => labtest.labemail === labemail);
-        setLabtestData(filteredLabtest);
-        setFilteredData(filteredLabtest);
+        setLabtestData(data);
+        setFilteredData(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching labtest data:', error.message);
@@ -43,9 +69,13 @@ const ViewMyLabtest = () => {
   // Function to remove labtest by id
   const Removefunction = (id) => {
     if (window.confirm('Do you want to remove this record?')) {
+      const token = localStorage.getItem('token');
       fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/${id}`, {
         method: "DELETE",
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
       }).then((res) => {
         if (res.ok) {
           setLabtestData((prevData) => prevData.filter(item => item._id !== id));
@@ -175,10 +205,14 @@ const ViewMyLabtest = () => {
                     <td>{labtest.hospitalemail}</td>
                     <td>{labtest.patient_name}</td>
                     <td>{labtest.test_name}</td>
-                    <td>{labtest.range}</td>
-                    <td>{labtest.actual_range}</td>
-                    <td>{labtest.level}</td>
-                    <td>{labtest.date}</td>
+                     <td>{labtest.range}</td>
+                     <td>{labtest.actual_range}</td>
+                     <td>
+                       <span className={getAlertClass(labtest.level, labtest.range, labtest.actual_range)}>
+                         {labtest.level}
+                       </span>
+                     </td>
+                     <td>{labtest.date}</td>
                     <td>
                       <a onClick={() => Removefunction(labtest._id)}>
                         <img src={imgDel} alt="Delete" />

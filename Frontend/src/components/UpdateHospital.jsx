@@ -44,7 +44,12 @@ const UpdateHospital = () => {
   useEffect(() => {
     const fetchHospitalDetails = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/${id}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/${id}`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           setEditedHospital({
@@ -87,11 +92,12 @@ const UpdateHospital = () => {
   
     try {
 
+      const token = localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        
+          'x-auth-token': token
         },
         body: JSON.stringify(editedHospital),
       });

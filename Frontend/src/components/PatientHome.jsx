@@ -148,6 +148,30 @@ const UserHome = () => {
                 </div>
               </div>
 
+              <div className="row g-3 mt-1">
+                <div className="col-6 col-md-6">
+                  <div className="card horizontal-product-card">
+                    <div className="card-body d-flex align-items-center">
+                      <div className="card-body"><img src={imgClip} className="img-fluid" style={{ width: 64, height: 64 }} />
+                        <Link className="text-success" to="/consent_settings">
+                          Record Sharing Consent </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-6 col-md-6">
+                  <div className="card horizontal-product-card">
+                    <div className="card-body d-flex align-items-center">
+                      <div className="card-body"><img src={imgFeed} className="img-fluid" style={{ width: 64, height: 64 }} />
+                        <Link className="text-success" to="/view_patient_history">
+                          My Health Timeline </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
           </div>
 

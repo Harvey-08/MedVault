@@ -50,11 +50,12 @@ const ViewMyHospital = () => {
     const url = `${import.meta.env.VITE_API_URL}/api/v1/hospital/map/` + hospitalId;
   
     try {
+      const token = localStorage.getItem('token');
       const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          // Add any additional headers, such as authentication token if needed
+          'x-auth-token': token,
         },
         body: JSON.stringify({
           lat: latitude,
@@ -92,9 +93,13 @@ const ViewMyHospital = () => {
 
   const Removefunction = (id) => {
     if (window.confirm('Do you want to remove?')) {
+      const token = localStorage.getItem('token');
       fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/${id}`, {
         method: "DELETE",
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token,
+        },
       }).then((res) => {
         // Refresh data instead of reloading the page
         setHospitalId((prevData) => prevData.filter(item => item._id !== id));
@@ -118,11 +123,16 @@ const LoadEdit = (id) => {
   useEffect(() => {
     const fetchHospitalData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
 
-        // Assuming 'vendoremail' is the key in cookies
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+        // Retrieve hospitalemail from localStorage
+        const hospitalemail = localStorage.getItem('email') || '';
          // Filter hospital data based on vendoremail
          const filteredHospital = data.filter((hospital) => hospital.hospitalemail === hospitalemail);
          setHospitalData(filteredHospital);
@@ -236,9 +246,9 @@ const LoadEdit = (id) => {
                     </div>
                   </div>   
             
-                  <a className="btn btn-danger" onClick={() => { LoadEdit(hospital.id) }}>Edit</a>
-                  <a className="btn btn-danger" onClick={() => { Removefunction(hospital.id) }}>Delete</a>
-                 <a className="btn btn-danger" onClick={() => setHospitalId(hospital.id)}>Geo Map</a> 
+                  <a className="btn btn-danger" onClick={() => { LoadEdit(hospital._id) }}>Edit</a>
+                  <a className="btn btn-danger" onClick={() => { Removefunction(hospital._id) }}>Delete</a>
+                 <a className="btn btn-danger" onClick={() => setHospitalId(hospital._id)}>Geo Map</a> 
 
                  <a className="btn btn-danger" target="_blank"
                   href={`https://maps.google.com/?q=${hospital.lat},${hospital.long}`}>

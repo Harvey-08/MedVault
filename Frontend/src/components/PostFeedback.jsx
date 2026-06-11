@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import "./css/bootstrap.min.css";
 import "./css/owl.carousel.min.css";
 import "./css/font-awesome.min.css";
@@ -22,8 +22,9 @@ import Logout from './Logout.jsx';
 import Title from './Title.jsx';
 
 const PostFeedback = () => {
-  const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-  const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+  const location = useLocation();
+  const { hospitalemail = '' } = location.state || {};
+  const patemail = localStorage.getItem('email') || '';
 
   const [formData, setFormData] = useState({
     name: '',

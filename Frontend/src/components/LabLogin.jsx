@@ -1,4 +1,4 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import "./css/bootstrap.min.css";
@@ -9,25 +9,22 @@ import "./css/lineicons.min.css";
 import "./css/magnific-popup.css";
 import "./css/style.css";
 import imgfolder from "./img/login.png";
-import { useCookies } from 'react-cookie';
+
 const Login = () => {
   const [email, setEmail] = useState('');
-  const [cookies, setCookie] = useCookies(['email']); // Use cookies to store the email
   const [password, setPassword] = useState('');
-  const [hospitalEmail, setHospitalEmail] = useState('');
-
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const role = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)role\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+  const role = localStorage.getItem('expectedRole') || '';
       
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true); // Start loading
+    setLoading(true);
 
     if (!email || !password) {
       setError('Please fill in all fields.');
-      setLoading(false); // Stop loading
+      setLoading(false);
       return;
     }
     try {
@@ -37,35 +34,28 @@ const Login = () => {
         role: 'Lab', // Explicitly require Lab role
       });
 
-      // Check if the login was successful
       if (response.status === 200) {
-          const { token, role: actualRole, hospitalemail: hospitalEmailFromResponse } = response.data;
+        const { token, role: actualRole, hospitalemail: hospitalEmailFromResponse } = response.data;
 
-          // Validate that the user is actually a Lab user
-          if (actualRole !== 'Lab') {
-            setError(`Access denied. This login is for Lab only. Please use the Lab login option.`);
-            alert(`Access denied. This login is for Lab only. Please use the Lab login option.`);
-            setLoading(false);
-            return;
-          }
+        if (actualRole !== 'Lab') {
+          setError(`Access denied. This login is for Lab only. Please use the Lab login option.`);
+          alert(`Access denied. This login is for Lab only. Please use the Lab login option.`);
+          setLoading(false);
+          return;
+        }
 
-          // Store the JWT token in localStorage
-          localStorage.setItem('token', token);
+        // Store standard storage items
+        localStorage.setItem('token', token);
+        localStorage.setItem('role', 'Lab');
+        localStorage.setItem('email', email);
+        localStorage.setItem('hospitalemail', hospitalEmailFromResponse);
 
-          // Include the token in the x-auth-token header for subsequent requests
-          axios.defaults.headers.common['x-auth-token'] = token;
+        axios.defaults.headers.common['x-auth-token'] = token;
 
-          // Redirect to the home page or perform other actions
-          alert('Login Successful!');
-          window.location.href = "/lab_home";
-          console.log('Login successful!');
-          
-          setHospitalEmail(hospitalEmailFromResponse);
-          
-          // Set cookies for labemail and hospitalemail
-          setCookie('labemail', email, { path: '/', sameSite: 'strict' });
-          setCookie('hospitalemail', hospitalEmailFromResponse, { path: '/', sameSite: 'strict' });
-  
+        alert('Login Successful!');
+        window.location.href = "/lab_home";
+        console.log('Login successful!');
+        
         setError('');
       } else {
         setError('Login failed. Please check your credentials.');
@@ -83,10 +73,7 @@ const Login = () => {
     } finally {
       setLoading(false);
     }
-   
   };
-
- 
 
   return (
     <div>
@@ -104,15 +91,15 @@ const Login = () => {
                     <span>Email</span>
                     <label htmlFor="email"><i className="lni lni-user"></i></label>
                     <input
-                      className="form-control"
-                      name="email"
-                      id="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      type="email"
-                      placeholder="info@example.com"
-                      aria-required="true"
-                      autoComplete="nope"
+                       className="form-control"
+                       name="email"
+                       id="email"
+                       value={email}
+                       onChange={(e) => setEmail(e.target.value)}
+                       type="email"
+                       placeholder="info@example.com"
+                       aria-required="true"
+                       autoComplete="nope"
                     />
                   </div>
 
@@ -120,19 +107,17 @@ const Login = () => {
                     <span>Password</span>
                     <label htmlFor="password"><i className="lni lni-lock"></i></label>
                     <input
-                      className="form-control"
-                      name="password"
-                      id="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      type="password"
-                      placeholder="password"
-                      aria-required="true"
-                      autoComplete="new-password"
+                       className="form-control"
+                       name="password"
+                       id="password"
+                       value={password}
+                       onChange={(e) => setPassword(e.target.value)}
+                       type="password"
+                       placeholder="password"
+                       aria-required="true"
+                       autoComplete="new-password"
                     />
                   </div>
-
-                 
 
                   <button className="btn btn-warning btn-lg w-100" type="submit" disabled={loading}>
                     {loading ? 'Logging in...' : 'Log In'}

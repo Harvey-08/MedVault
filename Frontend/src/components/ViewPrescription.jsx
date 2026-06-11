@@ -33,7 +33,7 @@ const ViewPrescription = () => {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
-
+          'x-auth-token': token
         },
       }).then((res) => {
         //  alert('Removed successfully.')
@@ -48,23 +48,9 @@ const ViewPrescription = () => {
     navigate("/more_info/" + id);
   }
 
-  const setCookie = (name, value, days) => {
-    let expires = '';
-    if (days) {
-      const date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = `; expires=${date.toUTCString()}`;
-    }
-    document.cookie = `${name}=${value || ''}${expires}; path=/`;
-  };
-
   const bill = (patemail, hospitalemail, patient_name) => {
-    // Set a cookie for the hospital's email
-    setCookie('patemail', patemail, 7);
-    setCookie('hospitalemail', hospitalemail, 7);
-    setCookie('patient_name', patient_name, 7);
-    // Navigate to the appointment booking page
-    navigate("/post_billing/");
+    // Navigate to the post billing page passing details via state
+    navigate("/post_billing/", { state: { patemail, hospitalemail, patient_name } });
   }
 
 
@@ -79,12 +65,17 @@ const ViewPrescription = () => {
   useEffect(() => {
     const fetchPrescriptionData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
 
-        // Assuming 'adminemail' is the key in cookies
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        // Filter prescription data based on adminemail
+        // Retrieve hospitalemail from localStorage
+        const hospitalemail = localStorage.getItem('email') || '';
+        // Filter prescription data based on hospitalemail
         const filteredPrescription = data.filter((prescription) => prescription.hospitalemail === hospitalemail);
         setPrescriptionData(filteredPrescription);
         setFilteredData(filteredPrescription);
@@ -235,18 +226,18 @@ const ViewPrescription = () => {
                           </td>
 
                           <td>
-                            <a className="btn btn-danger" onClick={() => MoreInfo(prescription.id)}>
+                            <a className="btn btn-danger" onClick={() => MoreInfo(prescription._id)}>
                               Click
                             </a>
                           </td>
 
                           <td>
-                            <a onClick={() => LoadEdit(prescription.id)}>
+                            <a onClick={() => LoadEdit(prescription._id)}>
                               <img src={imgEdit} alt="Edit" />
                             </a>
                           </td>
                           <td>
-                            <a onClick={() => Removefunction(prescription.id)}>
+                            <a onClick={() => Removefunction(prescription._id)}>
                               <img src={imgDel} alt="Delete" />
                             </a>
                           </td>

@@ -30,16 +30,20 @@ const MoreInfoPatient = () => {
   useEffect(() => {
     const fetchPrescriptionData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/`);
-        const data = await response.json();
-
-        // Assuming 'hospitalemail' is the key in cookies
-        const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-         // Filter prescription data based on hospitalemail
-         const filteredPrescription = data.filter((prescription) => prescription.id === id && prescription.patemail===patemail);
-         setPrescriptionData(filteredPrescription);
-         setFilteredData(filteredPrescription);
-         setLoading(false);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/${id}`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setPrescriptionData([data]);
+          setFilteredData([data]);
+        } else {
+          console.error('Error fetching prescription:', response.statusText);
+        }
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching prescription data:', error.message);
         setLoading(false);
@@ -47,7 +51,7 @@ const MoreInfoPatient = () => {
     };
 
     fetchPrescriptionData();
-  }, []);
+  }, [id]);
 
 
 

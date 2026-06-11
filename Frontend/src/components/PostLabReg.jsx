@@ -1,5 +1,6 @@
 import React, { useState,useEffect }  from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import "./css/bootstrap.min.css";
 import "./css/owl.carousel.min.css";
 import "./css/font-awesome.min.css";
@@ -29,7 +30,7 @@ const PostLabReg = () => {
    
     name: '',
     email: '',
-    passwordHash: '',
+    password: '',
     phone: '',
     city: '',
     role: 'Lab',  // Default role
@@ -37,13 +38,19 @@ const PostLabReg = () => {
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [existingEmails, setExistingEmails] = useState([]);
-  
-  const hospitalEmail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+  const [hospitalEmail, setHospitalEmail] = useState(
+    localStorage.getItem('email') || ''
+  );
  
   useEffect(() => {
     const fetchExistingEmails = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users/`);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const emails = response.data.map(user => user.email.toLowerCase());
         setExistingEmails(emails);
       } catch (error) {
@@ -51,7 +58,26 @@ const PostLabReg = () => {
       }
     };
 
+    const fetchHospitalProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (token) {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/users/profile`, {
+            headers: {
+              'x-auth-token': token
+            }
+          });
+          if (response.data && response.data.email) {
+            setHospitalEmail(response.data.email);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching hospital profile:', error);
+      }
+    };
+
     fetchExistingEmails();
+    fetchHospitalProfile();
   }, []);
 
   const handleInputChange = (e) => {
@@ -99,22 +125,35 @@ const PostLabReg = () => {
     }
 
     try {
+      const payload = {
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+        phone: userData.phone,
+        role: 'Lab',
+        city: userData.city || '',
+        hospitalemail: hospitalEmail
+      };
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/lab/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...userData, hospitalemail: hospitalEmail,role:'Lab' }),
-    
-    
-    });
+        body: JSON.stringify(payload),
+      });
+
       if (response.ok) {
         alert('Registered Successfully.');
         window.location.href = "/view_lab_user";
       } else {
-        console.error('Error submitting form data:', response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || response.statusText;
+        alert('Registration failed: ' + errorMessage);
+        console.error('Error submitting form data:', errorMessage);
       }
     } catch (error) {
+      alert('Error: ' + error.message);
       console.error('Error submitting form data:', error.message);
     }
   };

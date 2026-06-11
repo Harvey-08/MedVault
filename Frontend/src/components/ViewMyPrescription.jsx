@@ -41,16 +41,18 @@ const MoreInfo = (id) => {
   useEffect(() => {
     const fetchPrescriptionData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
 
-        // Assuming 'adminemail' is the key in cookies
-        const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-         // Filter prescription data based on adminemail
-         const filteredPrescription = data.filter((prescription) => prescription.patemail === patemail);
-         setPrescriptionData(filteredPrescription);
-         setFilteredData(filteredPrescription);
-         setLoading(false);
+        // No need to filter on client side; backend already filters by req.user.email
+        setPrescriptionData(data);
+        setFilteredData(data);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching prescription data:', error.message);
         setLoading(false);
@@ -185,7 +187,7 @@ const MoreInfo = (id) => {
     <td>{prescription.notes}</td>
      
         <td>
-          <a className="btn btn-danger" onClick={() => MoreInfo(prescription.id)}>
+          <a className="btn btn-danger" onClick={() => MoreInfo(prescription._id)}>
             Click
           </a>
         </td>

@@ -26,14 +26,15 @@ const LabProfile = () => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/profile`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
-        // Assuming 'email' is the key in cookies
-        const labemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)labemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-         // Filter location data based on vendoremail
-         const filteredProfile = data.filter((users) => users.email === labemail);
         if (response.status === 200) {
-          setProfileData(filteredProfile);
+          setProfileData([data]);
         } else {
           console.error('Error fetching user data:', response.statusText);
         }

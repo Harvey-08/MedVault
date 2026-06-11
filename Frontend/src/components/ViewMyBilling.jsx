@@ -31,16 +31,16 @@ const ViewMyBilling = () => {
   useEffect(() => {
     const fetchBillingData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/billing/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/billing/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
-
-        // Assuming 'adminemail' is the key in cookies
-        const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-         // Filter billing data based on adminemail
-         const filteredBilling = data.filter((billing) => billing.patemail === patemail);
-         setBillingData(filteredBilling);
-         setFilteredData(filteredBilling);
-         setLoading(false);
+        setBillingData(data);
+        setFilteredData(data);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching billing data:', error.message);
         setLoading(false);

@@ -10,6 +10,29 @@ import imgDel from "./img/trash.png"; // Image for delete icon
 import imgDown from "./img/download.png"; // Image for delete icon
 import imgSmall from "./img/core-img/logo-small.png";
 import imgBg from "./img/bg-img/9.png";
+const getAlertClass = (level, range, actualRange) => {
+  if (!level) return '';
+  const lowerLevel = level.toLowerCase();
+  if (lowerLevel.includes('high') || lowerLevel.includes('low') || lowerLevel.includes('abnormal') || lowerLevel.includes('critical') || lowerLevel.includes('out of range')) {
+    return 'badge bg-danger';
+  }
+  if (range && actualRange) {
+    const rangeMatch = range.match(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)/);
+    const val = parseFloat(actualRange);
+    if (rangeMatch && !isNaN(val)) {
+      const min = parseFloat(rangeMatch[1]);
+      const max = parseFloat(rangeMatch[2]);
+      if (val < min || val > max) {
+        return 'badge bg-danger';
+      }
+    }
+  }
+  if (lowerLevel.includes('normal')) {
+    return 'badge bg-success';
+  }
+  return 'badge bg-secondary';
+};
+
 const ViewPatientLabtest = () => {
   const navigate = useNavigate();
 
@@ -22,12 +45,15 @@ const ViewPatientLabtest = () => {
   useEffect(() => {
     const fetchLabtestData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
-        const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        const filteredLabtest = data.filter((labtest) => labtest.patemail === patemail);
-        setLabtestData(filteredLabtest);
-        setFilteredData(filteredLabtest);
+        setLabtestData(data);
+        setFilteredData(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching labtest data:', error.message);
@@ -157,7 +183,11 @@ const ViewPatientLabtest = () => {
                     <td>{labtest.test_name}</td>
                     <td>{labtest.range}</td>
                     <td>{labtest.actual_range}</td>
-                    <td>{labtest.level}</td>
+                    <td>
+                       <span className={getAlertClass(labtest.level, labtest.range, labtest.actual_range)}>
+                         {labtest.level}
+                       </span>
+                     </td>
                     <td>{labtest.date}</td>
 
                     <td>

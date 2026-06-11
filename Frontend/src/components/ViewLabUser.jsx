@@ -31,9 +31,13 @@ const ViewLabUser= () => {
 
   const Removefunction = (id) => {
     if (window.confirm('Do you want to remove?')) {
+      const token = localStorage.getItem('token');
       fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/${id}`, {
         method: "DELETE",
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-auth-token': token
+        },
       }).then((res) => {
         // Refresh data instead of reloading the page
         setProfileData((prevData) => prevData.filter(item => item._id !== id));
@@ -51,11 +55,16 @@ const LoadEdit = (id) => {
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
 
-        // Get the logged-in hospital's email from cookie
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+        // Get the logged-in hospital's email from localStorage
+        const hospitalemail = localStorage.getItem('email') || '';
         
         // Filter lab users by role AND hospitalemail
         const filteredUser = data.filter((user) => user.role === 'Lab' && user.hospitalemail === hospitalemail);
@@ -152,8 +161,8 @@ const LoadEdit = (id) => {
                   </div>   
              
             
-                  <a className="btn btn-danger" onClick={() => { LoadEdit(user.id) }}>Edit</a>
-                  <a className="btn btn-danger" onClick={() => { Removefunction(user.id) }}>Delete</a>
+                  <a className="btn btn-danger" onClick={() => { LoadEdit(user._id) }}>Edit</a>
+                  <a className="btn btn-danger" onClick={() => { Removefunction(user._id) }}>Delete</a>
               </div>
 
 

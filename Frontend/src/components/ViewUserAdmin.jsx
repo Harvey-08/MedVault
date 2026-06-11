@@ -30,7 +30,12 @@ const ViewUserAdmin = () => {
   useEffect(() => {
     const fetchBusinessData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
 
         // Assuming 'vendoremail' is the key in cookies

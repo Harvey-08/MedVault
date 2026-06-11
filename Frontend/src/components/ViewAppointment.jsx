@@ -25,30 +25,14 @@ const ViewAppointment = () => {
   const navigate = useNavigate();
 ///////////////////////////////////////////
   
-const setCookie = (name, value, days) => {
-  let expires = '';
-  if (days) {
-    const date = new Date();
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-    expires = `; expires=${date.toUTCString()}`;
-  }
-  document.cookie = `${name}=${value || ''}${expires}; path=/`;
-};
-
-const prescription = (hospitalemail,patemail,patient_name,doctor_name) => {
-  // Set a cookie for the hospital's email
-  setCookie('hospitalemail', hospitalemail, 7);
-  setCookie('patemail', patemail, 7);
-  setCookie('patient_name', patient_name, 7);
-  setCookie('doctor_name', doctor_name, 7);
-  // Navigate to the appointment booking page
-  navigate("/post_prescription/");
+const prescription = (hospitalemail, patemail, patient_name, doctor_name) => {
+  // Navigate to the prescription page passing details via state
+  navigate("/post_prescription/", { state: { hospitalemail, patemail, patient_name, doctor_name } });
 }
 
-const history = (patemail,patient_name) => {
-  setCookie('patemail', patemail, 7);
-  setCookie('patient_name', patient_name, 7);
-  navigate("/view_patient_history/");
+const history = (patemail, patient_name) => {
+  // Navigate to view patient history passing info via state
+  navigate("/view_patient_history/", { state: { patemail, patient_name } });
 }
 
 const UpdateStatus = (id) => {
@@ -57,16 +41,15 @@ const UpdateStatus = (id) => {
   useEffect(() => {
     const fetchAppointmentData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/appointment/`);
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/appointment/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         if (response.status === 200) {
-          // Get the logged-in hospital's email from cookie
-          const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-          
-          // Filter appointments by hospitalemail
-          const filteredAppointments = response.data.filter((appointment) => appointment.hospitalemail === hospitalemail);
-          
-          setAppointmentData(filteredAppointments);
-          setFilteredData(filteredAppointments);
+          setAppointmentData(response.data);
+          setFilteredData(response.data);
         } else {
           console.error('Error fetching request data:', response.statusText);
         }
@@ -158,7 +141,7 @@ const UpdateStatus = (id) => {
                   
                       </div>
                     </div>
-                    <a className="btn btn-danger" onClick={() => UpdateStatus(appointment.id)}>Update Status</a>
+                    <a className="btn btn-danger" onClick={() => UpdateStatus(appointment._id)}>Update Status</a>
                     <a className="btn btn-danger" onClick={() => prescription(appointment.hospitalemail,appointment.patemail,appointment.patient_name,appointment.doctor_name)}>Post Prescription</a>
                     <a className="btn btn-danger" onClick={() => history(appointment.patemail,appointment.patient_name)}>Medical History</a>
                   

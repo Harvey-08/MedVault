@@ -32,14 +32,15 @@ const EditProfile = (id) => {
   useEffect(() => {
     const fetchAdminData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/users/profile`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
-        // Assuming 'email' is the key in cookies
-        const adminemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)adminemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-         // Filter location data based on vendoremail
-         const filteredAdmin = data.filter((admin) =>admin.email ===adminemail);
         if (response.status === 200) {
-          setAdminData(filteredAdmin);
+          setAdminData([data]); // wrap in array since original code maps over filteredData
         } else {
           console.error('Error fetchingadmin data:', response.statusText);
         }
@@ -110,13 +111,13 @@ const EditProfile = (id) => {
               <div className="card product-card" style={{marginBottom:10}}>
                 <div className="card-body">
                       <a className="product-title d-block"  >Email:  <b> {admin.email} </b></a>
-                      <a className="product-title d-block"  >Mobile: {admin.mobile}  </a> 
+                      <a className="product-title d-block"  >Mobile: {admin.phone}  </a> 
                  
                     </div>
                   </div>   
                   
 
-              <a className="btn btn-danger" onClick={() => EditProfile(admin.id)}>Edit Profile</a> 
+              <a className="btn btn-danger" onClick={() => EditProfile(admin._id)}>Edit Profile</a> 
 
               </div>
 

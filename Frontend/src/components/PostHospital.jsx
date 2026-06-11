@@ -41,7 +41,7 @@ const PostHospital = () => {
 
   const postHospitalData = async () => {
    
-    const hospitalEmail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+    const hospitalEmail = localStorage.getItem('email') || '';
     //console.log(vendorEmail);  // Output: vendor@gmail.com
 
     

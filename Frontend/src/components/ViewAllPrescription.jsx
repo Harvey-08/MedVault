@@ -33,7 +33,7 @@ const ViewAllPrescription = () => {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
-
+          'x-auth-token': token
         },
       }).then((res) => {
         //  alert('Removed successfully.')
@@ -49,23 +49,9 @@ const ViewAllPrescription = () => {
   }
 
 
-  const setCookie = (name, value, days) => {
-    let expires = '';
-    if (days) {
-      const date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = `; expires=${date.toUTCString()}`;
-    }
-    document.cookie = `${name}=${value || ''}${expires}; path=/`;
-  };
-
   const labreport = (patemail, hospitalemail, patient_name) => {
-    // Set a cookie for the hospital's email
-    setCookie('patemail', patemail, 7);
-    setCookie('hospitalemail', hospitalemail, 7);
-    setCookie('patient_name', patient_name, 7);
-    // Navigate to the appointment booking page
-    navigate("/post_labtest/");
+    // Navigate to the post labtest page passing details via state
+    navigate("/post_labtest/", { state: { patemail, hospitalemail, patient_name } });
   }
 
 
@@ -76,12 +62,26 @@ const ViewAllPrescription = () => {
   useEffect(() => {
     const fetchPrescriptionData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
 
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        // Filter billing data based on adminemail
-        const filteredPrescription = data.filter((prescription) => prescription.hospitalemail === hospitalemail);
+        const role = localStorage.getItem('role');
+        let filteredPrescription = data;
+
+        if (role === 'Hospital') {
+          const hospitalemail = localStorage.getItem('email') || '';
+          filteredPrescription = data.filter((prescription) => prescription.hospitalemail === hospitalemail);
+        } else if (role === 'Lab') {
+          // Backend already pre-filters prescriptions to only include the lab user's hospital.
+          // We filter on the frontend to ensure a lab test is actually recommended.
+          filteredPrescription = data.filter((prescription) => prescription.lab_test && prescription.lab_test.trim() !== '');
+        }
+
         setPrescriptionData(filteredPrescription);
         setFilteredData(filteredPrescription);
         setLoading(false);

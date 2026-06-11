@@ -1,26 +1,19 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-
 import axios from 'axios';
-import { useCookies } from 'react-cookie';
 import "./css/bootstrap.min.css";
 import "./css/owl.carousel.min.css";
 import "./css/font-awesome.min.css";
 import "./css/animate.css";
-import "./css/font-awesome.min.css";
 import "./css/lineicons.min.css";
 import "./css/magnific-popup.css";
 import "./css/style.css";
 import imgfolder from "./img/core-img/logo-white.png";
 
 const AdminLogin = () => {
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [cookies, setCookie] = useCookies(['email']); // Use cookies to store the email
   const [error, setError] = useState('');
-  const token = localStorage.getItem('token');
-
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -33,8 +26,10 @@ const AdminLogin = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
 
+    const trimmedEmail = email.trim().toLowerCase();
+
     // Restrict admin login to the single allowed credential
-    if (email.toLowerCase() !== 'admin@gmail.com') {
+    if (trimmedEmail !== 'admin@gmail.com') {
       const msg = 'Invalid admin credentials.';
       setError(msg);
       alert(msg);
@@ -43,7 +38,7 @@ const AdminLogin = () => {
 
     try {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/users/login`, {
-        email: email,
+        email: trimmedEmail,
         password: password,
         role: 'Admin', // Explicitly require Admin role
       });
@@ -60,8 +55,10 @@ const AdminLogin = () => {
           return;
         }
 
-        // Store the JWT token in localStorage
+        // Store the JWT token, role, and email in localStorage
         localStorage.setItem('token', token);
+        localStorage.setItem('role', 'Admin');
+        localStorage.setItem('email', email);
 
         // Include the token in the x-auth-token header for subsequent requests
         axios.defaults.headers.common['x-auth-token'] = token;
@@ -70,8 +67,6 @@ const AdminLogin = () => {
         alert('Login Successful!');
         window.location.href = "/admin_home";
         console.log('Login successful!');
-
-        setCookie('adminemail', email, { path: '/', sameSite: 'strict' });
 
         setError('');
       } else {
@@ -89,7 +84,6 @@ const AdminLogin = () => {
       }
     }
   };
-
 
   return (
     <div>
@@ -127,4 +121,4 @@ const AdminLogin = () => {
   );
 };
 
-export default AdminLogin
+export default AdminLogin;

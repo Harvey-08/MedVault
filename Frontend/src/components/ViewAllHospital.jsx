@@ -26,31 +26,14 @@ const ViewAllHospital = () => {
   //////////////Navgation Code Start//////////////
   ////////////////////////////////////////////////
   
-  const setCookie = (name, value, days) => {
-    let expires = '';
-    if (days) {
-      const date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = `; expires=${date.toUTCString()}`;
-    }
-    document.cookie = `${name}=${value || ''}${expires}; path=/`;
-  };
-  
-  const bookappointment = (hospitalemail,name,doctor_name) => {
-    // Set a cookie for the hospital's email
-    setCookie('hospitalemail', hospitalemail, 7);
-    setCookie('name', name, 7);
-    setCookie('doctor_name', doctor_name, 7);
-    // Navigate to the appointment booking page
-    navigate("/post_appointment/");
+  const bookappointment = (hospitalemail, name, doctor_name) => {
+    // Navigate to the appointment booking page passing info via state
+    navigate("/post_appointment/", { state: { hospitalemail, name, doctor_name } });
   }
 
   const setShareFeedback = (hospitalemail) => {
-    setCookie('hospitalemail', hospitalemail, 7);
-    // Assuming farmer.useremail contains the user's email
-    // Store useremail in cookies
-    // For example, redirect to another page
-    window.location.href = '/post_feedback';
+    // Navigate to post feedback passing hospitalemail via state
+    navigate('/post_feedback', { state: { hospitalemail } });
   };
   const [hospitalData, setHospitalData] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');

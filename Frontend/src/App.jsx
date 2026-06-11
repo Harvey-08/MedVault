@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import axios from 'axios';
 import "bootstrap/dist/css/bootstrap.min.css";
 //import "./App.css";
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';  // Import JavaScript for dropdown
@@ -70,15 +71,26 @@ import UpdateLabuser from './components/UpdateLabuser';
 import ViewPatientLabtest from './components/ViewPatientLabtest';
 import MoreInfoPatient from './components/MoreInfoPatient';
 import ViewPatientHistory from './components/ViewPatientHistory';
+import ConsentSettings from './components/ConsentSettings';
+import ViewAuditLogs from './components/ViewAuditLogs';
 
 function App() {
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      axios.defaults.headers.common['x-auth-token'] = token;
+    }
+  }, []);
+
   return (
-      <div>
-        <BrowserRouter>
-          <Routes>
-      
-            <Route path='/' element={<Index />} />
-            <Route path='/admin_profile' element={<AdminProfile />} />
+    <div>
+      <BrowserRouter>
+        <Routes>
+    
+          <Route path='/' element={<Index />} />
+          <Route path='/consent_settings' element={<ConsentSettings />} />
+          <Route path='/view_audit_logs' element={<ViewAuditLogs />} />
+          <Route path='/admin_profile' element={<AdminProfile />} />
             <Route path='/update_labuser/:id' element={<UpdateLabuser />} />
         
             

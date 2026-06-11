@@ -9,10 +9,7 @@ import "./css/lineicons.min.css";
 import "./css/magnific-popup.css";
 import "./css/style.css";
 import imgfolder from "./img/core-img/logo-white.png";
-import { useCookies } from 'react-cookie';
-
 const PatientRegister = () => {
-  const [cookies, setCookie] = useCookies(['role']);
   const [userData, setUserData] = useState({
     name: '',
     email: '',
@@ -173,7 +170,7 @@ const PatientRegister = () => {
                 <Link 
                   to="/login" 
                   className="ms-1" 
-                  onClick={() => setCookie('role', 'Patient', { path: '/' })}
+                  onClick={() => localStorage.setItem('expectedRole', 'Patient')}
                 >
                   Sign In
                 </Link>

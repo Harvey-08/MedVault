@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import "./css/bootstrap.min.css";
 import "./css/owl.carousel.min.css";
 import "./css/font-awesome.min.css";
@@ -14,6 +14,7 @@ import Logout from './Logout.jsx';
 import Title from './Title.jsx';
 
 const PostLabtest = () => {
+    const location = useLocation();
     const [formData, setFormData] = useState({
         patemail: '',
         labemail: '',
@@ -29,12 +30,10 @@ const PostLabtest = () => {
     const [validationErrors, setValidationErrors] = useState({});
 
     const postLabtestData = async () => {
-        const labemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)labemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        const patemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
-        const patient_name = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)patient_name\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+        const labemail = localStorage.getItem('email') || '';
+        const { hospitalemail = '', patemail = '', patient_name = '' } = location.state || {};
 
-        // Validate required cookies
+        // Validate required fields
         if (!labemail || labemail === 'undefined' || labemail === '') {
             alert('Error: Lab email not found. Please login again.');
             return;
@@ -65,8 +64,12 @@ const PostLabtest = () => {
             formDataForServer.append('date', formData.date);
             formDataForServer.append('report', formData.report);
 
+            const token = localStorage.getItem('token');
             const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/labtest/`, {
                 method: 'POST',
+                headers: {
+                    'x-auth-token': token
+                },
                 body: formDataForServer
                 // Do NOT set Content-Type header - browser will set it automatically with boundary for FormData
             });

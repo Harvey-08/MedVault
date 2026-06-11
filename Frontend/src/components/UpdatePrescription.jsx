@@ -44,7 +44,12 @@ const UpdatePrescription = () => {
   useEffect(() => {
     const fetchPrescriptionDetails = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/${id}`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/prescription/${id}`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         if (response.ok) {
           const data = await response.json();
           setEditedPrescription({
@@ -95,7 +100,7 @@ const UpdatePrescription = () => {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-         
+          'x-auth-token': token
         },
         body: JSON.stringify(editedPrescription),
       });
@@ -106,10 +111,12 @@ const UpdatePrescription = () => {
         alert('Update Successful');
         window.location.href = '/view_prescription';
       } else {
-        console.error('Error posting item data:', response.statusText);
+        const errorData = await response.json();
+        alert(errorData.error || errorData.message || 'Error updating prescription.');
       }
     } catch (error) {
       console.error('Error posting item data:', error.message);
+      alert('Error: ' + error.message);
     }
   };
 

@@ -33,7 +33,7 @@ const ViewBilling = () => {
         method: "DELETE",
         headers: {
           'Content-Type': 'application/json',
-
+          'x-auth-token': token
         },
       }).then((res) => {
         //  alert('Removed successfully.')
@@ -58,11 +58,16 @@ const ViewBilling = () => {
   useEffect(() => {
     const fetchBillingData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/billing/`);
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/billing/`, {
+          headers: {
+            'x-auth-token': token
+          }
+        });
         const data = await response.json();
 
-        // Assuming 'adminemail' is the key in cookies
-        const hospitalemail = decodeURIComponent(document.cookie.replace(/(?:(?:^|.*;\s*)hospitalemail\s*=\s*([^;]*).*$)|^.*$/, '$1'));
+        // Retrieve hospitalemail from localStorage
+        const hospitalemail = localStorage.getItem('email') || '';
         // Filter billing data based on adminemail
         const filteredBilling = data.filter((billing) => billing.hospitalemail === hospitalemail);
         setBillingData(filteredBilling);
@@ -202,12 +207,12 @@ const ViewBilling = () => {
 
 
                           <td>
-                            <a onClick={() => LoadEdit(billing.id)}>
+                            <a onClick={() => LoadEdit(billing._id)}>
                               <img src={imgEdit} alt="Edit" />
                             </a>
                           </td>
                           <td>
-                            <a onClick={() => Removefunction(billing.id)}>
+                            <a onClick={() => Removefunction(billing._id)}>
                               <img src={imgDel} alt="Delete" />
                             </a>
                           </td>

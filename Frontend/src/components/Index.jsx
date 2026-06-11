@@ -19,37 +19,24 @@ import imgst from "./img/sty-1.png";
 const Index = () => {
   const [loading, setLoading] = useState(true);
 
-const setCookie = (name, value, days) => {
-    let expires = '';
-    if (days) {
-      const date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = `; expires=${date.toUTCString()}`;
-    }
-    document.cookie = `${name}=${value || ''}${expires}; path=/`;
-  };
   const handleLinkClick1 = () => {
-    // Set a cookie named "user" with value "JohnDoe" that expires in 7 days
-    setCookie('role', 'Admin', 7);
-    console.log('Cookie set!');
+    localStorage.setItem('expectedRole', 'Admin');
+    console.log('Role set to Admin!');
   };
 
   const handleLinkClick2 = () => {
-    // Set a cookie named "user" with value "JohnDoe" that expires in 7 days
-    setCookie('role', 'Hospital', 7);
-    console.log('Cookie set!');
+    localStorage.setItem('expectedRole', 'Hospital');
+    console.log('Role set to Hospital!');
   };
 
   const handleLinkClick3 = () => {
-    // Set a cookie named "user" with value "JohnDoe" that expires in 7 days
-    setCookie('role', 'Patient', 7);
-    console.log('Cookie set!');
+    localStorage.setItem('expectedRole', 'Patient');
+    console.log('Role set to Patient!');
   };
 
   const handleLinkClick4 = () => {
-    // Set a cookie named "user" with value "JohnDoe" that expires in 7 days
-    setCookie('role', 'Lab', 7);
-    console.log('Cookie set!');
+    localStorage.setItem('expectedRole', 'Lab');
+    console.log('Role set to Lab!');
   };
   // UseEffect to handle spinner timeout
   useEffect(() => {
