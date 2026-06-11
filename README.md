@@ -94,6 +94,116 @@ flowchart TD
 - **Security & Validation:** Joi, Express Rate Limit, Node Crypto (AES-256-GCM)
 - **Other Tools:** Axios, React Cookie
 
+## Project Structure
+
+```text
+MedVault/
+├── Backend/                                          # Server-side backend environment
+│   ├── app.js                                        # Main server file and Express application entry point
+│   ├── helpers/                                      # Utility helper and middleware functions
+│   │   ├── auditLogger.js                            # Helper functions for logging security-relevant actions to audit log database
+│   │   ├── drugChecker.js                            # Helper function for verifying compatibility of drug combinations
+│   │   ├── jwt.js                                    # JWT validation and creation middleware
+│   │   └── validation.js                             # Helper validation logic for requests and data input
+│   ├── models/                                       # Mongoose database models and schemas
+│   │   ├── appointment.js                            # Mongoose schema and model for patient appointments
+│   │   ├── auditLog.js                               # Mongoose schema and model for audit log entries
+│   │   ├── billing.js                                # Mongoose schema and model for bills and billing history
+│   │   ├── consent.js                                # Mongoose schema and model for patient consent records
+│   │   ├── feedback.js                               # Mongoose schema and model for patient/hospital feedback
+│   │   ├── hospital.js                               # Mongoose schema and model for hospital user profiles
+│   │   ├── labtest.js                                # Mongoose schema and model for laboratory test records and reports
+│   │   ├── prescription.js                           # Mongoose schema and model for prescriptions issued by doctors
+│   │   └── user.js                                   # Mongoose schema and model for unified system users
+│   ├── package-lock.json                             # Locked dependency tree for Node backend
+│   ├── package.json                                  # Dependencies, scripts, and package metadata for backend
+│   ├── routes/                                       # Express API route handlers
+│   │   ├── appointment.js                            # API routes and controller functions for appointment management
+│   │   ├── billing.js                                # API routes and controller functions for billing and payments
+│   │   ├── consent.js                                # API routes and controller functions for data access consent
+│   │   ├── feedback.js                               # API routes and controller functions for system feedback
+│   │   ├── hospital.js                               # API routes and controller functions for hospital operations
+│   │   ├── labtest.js                                # API routes and controller functions for laboratory report management
+│   │   ├── prescription.js                           # API routes and controller functions for digital prescriptions
+│   │   └── users.js                                  # API routes and controller functions for user authentications and profiles
+│   ├── seedAdmin.js                                  # Script to pre-populate/seed initial system administrator credentials
+│   └── utils/                                        # Security and clinical calculation utilities
+│       ├── encryption.js                             # Field-level AES-256-GCM encryption/decryption utilities for sensitive data
+│       └── slotGenerator.js                          # Utility to generate booking time slots for hospitals
+├── Frontend/                                         # Frontend application directory
+│   ├── .eslintrc.cjs                                 # ESLint configuration rules for React code quality
+│   ├── index.html                                    # Entry HTML file served by Vite for the React client app
+│   ├── package-lock.json                             # Locked dependency tree for React frontend
+│   ├── package.json                                  # Dependencies, scripts, and package metadata for frontend
+│   ├── public/                                       # Public static directory containing web assets
+│   │   └── React-icon.png                            # React logo icon asset
+│   └── src/                                          # Frontend source files
+│       ├── App.jsx                                   # Main React application component containing app-wide routes
+│       ├── components/                               # React view and UI components
+│       │   ├── AdminHome.jsx                         # Home dashboard view for administrator role
+│       │   ├── AdminLogin.jsx                        # Admin-specific login page component
+│       │   ├── AdminProfile.jsx                      # Detailed profile view for administrators
+│       │   ├── ChangePassword.jsx                    # Settings component for account password changes
+│       │   ├── ConsentSettings.jsx                   # Settings component for managing/editing patient consents
+│       │   ├── EditAdminProfile.jsx                  # Edit form component for admin profiles
+│       │   ├── EditHospitalProfile.jsx               # Edit form component for hospital profiles
+│       │   ├── EditPatientProfile.jsx                # Edit form component for patient profiles
+│       │   ├── HospitalHome.jsx                      # Home dashboard view for hospital accounts
+│       │   ├── HospitalProfile.jsx                   # Detailed profile view for hospitals
+│       │   ├── HospitalRegister.jsx                  # Public registration page for hospital roles
+│       │   ├── Index.jsx                             # MedVault public home/landing page
+│       │   ├── LabHome.jsx                           # Home dashboard view for lab technician accounts
+│       │   ├── LabLogin.jsx                          # Lab tech specific login page component
+│       │   ├── LabProfile.jsx                        # Detailed profile view for lab technicians
+│       │   ├── Logout.jsx                            # Session logout logic component
+│       │   ├── MoreInfo.jsx                          # Info card component for hospital profiles
+│       │   ├── MoreInfoPatient.jsx                   # Detailed clinical overview modal/view for patient profiles
+│       │   ├── PatientHome.jsx                       # Home dashboard view for patient accounts
+│       │   ├── PatientProfile.jsx                    # Detailed profile view for patients
+│       │   ├── PatientRegister.jsx                   # Public registration page for patients
+│       │   ├── PostAppointment.jsx                   # Form to request/post a new appointment
+│       │   ├── PostBilling.jsx                       # Form to post a new billing/invoice transaction
+│       │   ├── PostFeedback.jsx                      # Form to submit patient feedback
+│       │   ├── PostHospital.jsx                      # Form to submit hospital profiles
+│       │   ├── PostLabReg.jsx                        # Form to register a lab technician account
+│       │   ├── PostLabtest.jsx                       # Form to upload a new laboratory test record
+│       │   ├── PostPrescription.jsx                  # Form to write and post a patient prescription
+│       │   ├── ResetPassword.jsx                     # Component for password reset forms
+│       │   ├── Title.jsx                             # Title bar/header layout component
+│       │   ├── UpdateBilling.jsx                     # Form to edit/update billing information
+│       │   ├── UpdateHospital.jsx                    # Form to edit/update hospital information
+│       │   ├── UpdateLabuser.jsx                     # Form to edit/update lab user credentials
+│       │   ├── UpdatePrescription.jsx                # Form to update/modify an existing prescription
+│       │   ├── UpdateStatusAdmin.jsx                 # Component for admins to toggle status of hospitals/users
+│       │   ├── UpdateStatusAppointment.jsx           # Component for hospitals to toggle/update appointment status
+│       │   ├── UploadLabImage.jsx                    # File upload component for laboratory test scans/images
+│       │   ├── ViewAllHospital.jsx                   # Directory view of all hospitals registered in the network
+│       │   ├── ViewAllPrescription.jsx               # Master table view of all prescriptions for administrators
+│       │   ├── ViewAppointment.jsx                   # Table view of appointments from hospital perspective
+│       │   ├── ViewAuditLogs.jsx                     # Log viewer table for admin auditing and security monitoring
+│       │   ├── ViewBilling.jsx                       # Table view of bills from hospital perspective
+│       │   ├── ViewHospitalAdmin.jsx                 # Table view of hospitals for administration dashboard
+│       │   ├── ViewLabUser.jsx                       # Table view of lab technician accounts
+│       │   ├── ViewLabtest.jsx                       # Table view of laboratory test records
+│       │   ├── ViewMyAppointment.jsx                 # Table view of active appointments from patient perspective
+│       │   ├── ViewMyBilling.jsx                     # Invoice history table from patient perspective
+│       │   ├── ViewMyFeedback.jsx                    # Submitted feedback logs view
+│       │   ├── ViewMyHospital.jsx                    # Detail view of patient's preferred hospital
+│       │   ├── ViewMyLabtest.jsx                     # Lab reports table from patient perspective
+│       │   ├── ViewMyPrescription.jsx                # Active and historical prescriptions table from patient perspective
+│       │   ├── ViewPatientHistory.jsx                # Unified medical timeline view for patient case histories
+│       │   ├── ViewPatientLabtest.jsx                # Lab test logs and images for patient profiles
+│       │   ├── ViewPrescription.jsx                  # Digital prescription tables from hospital perspective
+│       │   ├── ViewUserAdmin.jsx                     # User management table for administrators
+│       │   ├── css/                                  # Directory containing custom CSS and animations
+│       │   ├── fonts/                                # Directory containing custom web icon fonts
+│       │   ├── img/                                  # Directory containing background image and logo assets
+│       │   └── js/                                   # Directory containing third-party JavaScript scripts
+│       ├── main.jsx                                  # App entry file rendering the App component to the DOM
+│       └── vite.config.js                            # Configuration file for Vite dev server and bundling options
+└── README.md                                         # Main workspace project documentation
+```
+
 ## Environment Variables
 
 ### Backend Environment Variables
