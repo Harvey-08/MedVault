@@ -7,6 +7,7 @@ build/
 
 # Environment Variables
 .env*
+!.env.example
 
 # Project Specific
 Backend/public/uploads/*
