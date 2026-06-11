@@ -19,6 +19,19 @@ app.use(express.json());
 //app.use(bodyParser.json());
 app.use(morgan('tiny'));
 
+// Rate limiting configuration
+const rateLimit = require('express-rate-limit');
+const loginLimiter = rateLimit({
+    windowMs: 5 * 60 * 1000, // 5 minutes
+    max: 10, // Max 10 requests per windowMs
+    message: {
+        success: false,
+        message: 'Too many login attempts. Please try again later.'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 
 //"email": "john.doe@example.com",
 //"password": "yourpassword"
@@ -31,12 +44,14 @@ const appointmentRoutes = require('./routes/appointment');
 const usersRoutes = require('./routes/users');
 const billingRoutes = require('./routes/billing');
 const labtestRoutes = require('./routes/labtest');
-
 const prescriptionRoutes = require('./routes/prescription');
+const consentRoutes = require('./routes/consent');
 
 
 // Base path for all API routes. Falls back to '/api/v1' if not provided in .env
 const api = process.env.API_URL || '/api/v1';
+
+app.use(`${api}/users/login`, loginLimiter);
 
 app.use('/public', express.static('public'));
 app.use(`${api}/appointment`, appointmentRoutes);
@@ -46,6 +61,7 @@ app.use(`${api}/users`, usersRoutes);
 app.use(`${api}/billing`, billingRoutes);
 app.use(`${api}/labtest`, labtestRoutes);
 app.use(`${api}/prescription`, prescriptionRoutes);
+app.use(`${api}/consent`, consentRoutes);
 
 
 

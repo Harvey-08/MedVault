@@ -39,12 +39,20 @@ router.get(`/`, async (req, res) => {
 
 
 router.get(`/:id`, async (req, res) =>{
-    const hospitalList = await Hospital.findById(req.params.id);
+    try {
+        if (!req.params.id || req.params.id === 'undefined') {
+            return res.status(400).json({ success: false, error: 'Invalid hospital ID' });
+        }
+        const hospitalList = await Hospital.findById(req.params.id);
 
-    if(!hospitalList) {
-        res.status(500).json({success: false})
-    } 
-    res.send(hospitalList);
+        if(!hospitalList) {
+            return res.status(404).json({ success: false, error: 'Hospital not found' });
+        } 
+        res.send(hospitalList);
+    } catch (error) {
+        console.error('Error fetching hospital by ID:', error.message);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
 })
 
 
