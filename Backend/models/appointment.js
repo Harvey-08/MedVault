@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { encrypt, decrypt } = require('../utils/encryption');
 
 const appointmentSchema = mongoose.Schema({
     patemail: {
@@ -13,14 +14,14 @@ const appointmentSchema = mongoose.Schema({
         type: String,
         required: true,    
     },
-    doctor_name:
-    {
+    doctor_name: {
         type: String,
-       
     },
     reason: {
         type: String,
         required: true,    
+        get: decrypt,
+        set: encrypt
     },
     appointment_date: {
         type: Date,
@@ -30,8 +31,6 @@ const appointmentSchema = mongoose.Schema({
         type: String,
         required: true,    
     },
-    
-  
     address: {
         type: String,
         required: true,    
@@ -52,8 +51,7 @@ const appointmentSchema = mongoose.Schema({
         type: Date,
         default: Date.now,
     }
-})
-
+});
 
 appointmentSchema.virtual('id').get(function () {
     return this._id.toHexString();
@@ -61,7 +59,11 @@ appointmentSchema.virtual('id').get(function () {
 
 appointmentSchema.set('toJSON', {
     virtuals: true,
+    getters: true
 });
 
+appointmentSchema.set('toObject', {
+    getters: true
+});
 
 exports.Appointment = mongoose.model('Appointment', appointmentSchema);

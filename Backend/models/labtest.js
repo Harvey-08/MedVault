@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { encrypt, decrypt } = require('../utils/encryption');
 
 const labtestSchema = mongoose.Schema({
     patemail: {
@@ -17,7 +18,6 @@ const labtestSchema = mongoose.Schema({
         type: String,
         required: true,    
     },  
-    
     test_name: {
         type: String,
         required: true,    
@@ -25,14 +25,20 @@ const labtestSchema = mongoose.Schema({
     range: {
         type: String,
         required: true,    
+        get: decrypt,
+        set: encrypt
     },
     actual_range: {
         type: String,
         required: true,    
+        get: decrypt,
+        set: encrypt
     },
     level: {
         type: String,
         required: true,    
+        get: decrypt,
+        set: encrypt
     },
     date: {
         type: String,
@@ -40,14 +46,13 @@ const labtestSchema = mongoose.Schema({
     },
     report: {
         type: String,
-          default: ''
+        default: ''
     },
     dateCreated: {
         type: Date,
         default: Date.now,
     }
-})
-
+});
 
 labtestSchema.virtual('id').get(function () {
     return this._id.toHexString();
@@ -55,7 +60,11 @@ labtestSchema.virtual('id').get(function () {
 
 labtestSchema.set('toJSON', {
     virtuals: true,
+    getters: true
 });
 
+labtestSchema.set('toObject', {
+    getters: true
+});
 
 exports.Labtest = mongoose.model('Labtest', labtestSchema);
