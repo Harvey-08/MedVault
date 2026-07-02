@@ -33,7 +33,8 @@ mongoose.connect(connectionString, {
         phone: '9876543210',
         role: 'Admin',
         city: 'System',
-        status: 'Approved'
+        status: 'Approved',
+        agreedToPrivacyPolicy: true
     });
     await adminUser.save();
 

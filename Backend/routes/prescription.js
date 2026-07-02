@@ -43,7 +43,9 @@ router.get('/', auth, auth.checkRole(['Patient', 'Hospital', 'Lab', 'Admin']), a
             };
         }
         
-        const prescriptionList = await Prescription.find(query);
+        const prescriptionList = await Prescription.find(query)
+            .populate('patient', '-passwordHash')
+            .populate('hospital', '-passwordHash');
         await logEvent(req.user.email, req.user.role, 'VIEW_PRESCRIPTION_LIST', 'SUCCESS');
         res.status(200).send(prescriptionList);
     } catch (error) {
@@ -55,7 +57,9 @@ router.get('/', auth, auth.checkRole(['Patient', 'Hospital', 'Lab', 'Admin']), a
 // Get specific prescription by ID (validates consent)
 router.get('/:id', auth, async (req, res) => {
     try {
-        const prescription = await Prescription.findById(req.params.id);
+        const prescription = await Prescription.findById(req.params.id)
+            .populate('patient', '-passwordHash')
+            .populate('hospital', '-passwordHash');
         if (!prescription) {
             await logEvent(req.user.email, req.user.role, 'VIEW_PRESCRIPTION', 'DENIED', `Not found: ${req.params.id}`);
             return res.status(404).json({ success: false, message: 'Prescription not found!' });
@@ -118,7 +122,20 @@ router.post('/', auth, auth.checkRole(['Hospital']), validateBody(prescriptionSc
             return res.status(400).json({ success: false, error: `Drug Interaction Warning: ${conflictMsg}` });
         }
 
+        const { User } = require('../models/user');
+        const patientUser = await User.findOne({ email: { $regex: new RegExp('^' + req.body.patemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+        const hospitalUser = await User.findOne({ email: { $regex: new RegExp('^' + req.body.hospitalemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+
+        if (!patientUser) {
+            return res.status(400).json({ success: false, error: 'Patient account not found.' });
+        }
+        if (!hospitalUser) {
+            return res.status(400).json({ success: false, error: 'Hospital account not found.' });
+        }
+
         let prescription = new Prescription({
+            patient: patientUser._id,
+            hospital: hospitalUser._id,
             patemail: req.body.patemail,
             hospitalemail: req.body.hospitalemail,
             doctor_name: req.body.doctor_name,
@@ -239,6 +256,75 @@ router.put('/status/:id', auth, auth.checkRole(['Hospital', 'Admin']), validateB
 
         await logEvent(req.user.email, req.user.role, 'UPDATE_PRESCRIPTION_STATUS', 'SUCCESS', `Updated status of ID ${req.params.id} to ${req.body.status}`);
         res.status(200).send(prescription);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// GET /fhir/:id - Export prescription in HL7 FHIR v4 MedicationRequest format
+router.get('/fhir/:id', auth, async (req, res) => {
+    try {
+        const prescription = await Prescription.findById(req.params.id);
+        if (!prescription) {
+            await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_PRESCRIPTION', 'DENIED', `Not found: ${req.params.id}`);
+            return res.status(404).json({ success: false, message: 'Prescription not found!' });
+        }
+
+        // Access check
+        const isCreator = req.user.email && prescription.hospitalemail && req.user.email.toLowerCase() === prescription.hospitalemail.toLowerCase();
+        const isPatient = req.user.email && prescription.patemail && req.user.email.toLowerCase() === prescription.patemail.toLowerCase();
+        
+        let hasConsent = false;
+        if (req.user.role === 'Hospital') {
+            const consent = await Consent.findOne({
+                patientEmail: { $regex: new RegExp('^' + prescription.patemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+                hospitalEmail: { $regex: new RegExp('^' + req.user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+                status: 'Granted'
+            });
+            hasConsent = !!consent;
+        }
+
+        if (req.user.role !== 'Admin' && !isCreator && !isPatient && !hasConsent) {
+            await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_PRESCRIPTION', 'DENIED', `Unauthorized export attempt for ID: ${req.params.id}`);
+            return res.status(403).json({ success: false, error: 'Access denied. Consent required.' });
+        }
+
+        const meds = [
+            prescription.medicine_1,
+            prescription.medicine_2,
+            prescription.medicine_3,
+            prescription.medicine_4
+        ].filter(Boolean);
+
+        const fhirMedRequest = {
+            resourceType: "MedicationRequest",
+            id: prescription._id.toString(),
+            status: prescription.status === 'Completed' ? 'completed' : 'active',
+            intent: "order",
+            subject: {
+                reference: `Patient/${prescription.patient ? prescription.patient.toString() : 'unknown'}`,
+                display: prescription.patient_name
+            },
+            requester: {
+                reference: `Organization/${prescription.hospital ? prescription.hospital.toString() : 'unknown'}`,
+                display: prescription.hospitalemail
+            },
+            medicationCodeableConcept: {
+                coding: meds.map(med => ({
+                    display: med
+                })),
+                text: meds.join(', ')
+            },
+            authoredOn: prescription.dateCreated,
+            note: [
+                {
+                    text: `Findings: ${prescription.findings}. Notes: ${prescription.notes || 'None'}`
+                }
+            ]
+        };
+
+        await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_PRESCRIPTION', 'SUCCESS', `Exported Prescription ID: ${prescription._id}`);
+        res.status(200).json(fhirMedRequest);
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

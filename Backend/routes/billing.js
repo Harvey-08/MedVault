@@ -15,7 +15,9 @@ router.get('/', auth, auth.checkRole(['Patient', 'Hospital', 'Admin']), async (r
             query = { hospitalemail: req.user.email };
         }
         
-        const billingList = await Billing.find(query);
+        const billingList = await Billing.find(query)
+            .populate('patient', '-passwordHash')
+            .populate('hospital', '-passwordHash');
         await logEvent(req.user.email, req.user.role, 'VIEW_BILLING_LIST', 'SUCCESS');
         res.status(200).send(billingList);
     } catch (error) {
@@ -27,7 +29,9 @@ router.get('/', auth, auth.checkRole(['Patient', 'Hospital', 'Admin']), async (r
 // Get specific billing by ID
 router.get('/:id', auth, async (req, res) => {
     try {
-        const billing = await Billing.findById(req.params.id);
+        const billing = await Billing.findById(req.params.id)
+            .populate('patient', '-passwordHash')
+            .populate('hospital', '-passwordHash');
         if (!billing) {
             await logEvent(req.user.email, req.user.role, 'VIEW_BILLING', 'DENIED', `Not found: ${req.params.id}`);
             return res.status(404).json({ success: false, message: 'Billing record not found!' });
@@ -57,7 +61,20 @@ router.post('/', auth, auth.checkRole(['Hospital', 'Admin']), validateBody(billi
             return res.status(403).json({ success: false, error: 'Access denied. Hospital email mismatch.' });
         }
 
+        const { User } = require('../models/user');
+        const patientUser = await User.findOne({ email: { $regex: new RegExp('^' + req.body.patemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+        const hospitalUser = await User.findOne({ email: { $regex: new RegExp('^' + req.body.hospitalemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+
+        if (!patientUser) {
+            return res.status(400).json({ success: false, error: 'Patient account not found.' });
+        }
+        if (!hospitalUser) {
+            return res.status(400).json({ success: false, error: 'Hospital account not found.' });
+        }
+
         let billing = new Billing({
+            patient: patientUser._id,
+            hospital: hospitalUser._id,
             patemail: req.body.patemail,
             hospitalemail: req.body.hospitalemail,
             patient_name: req.body.patient_name,

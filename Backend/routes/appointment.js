@@ -56,7 +56,9 @@ router.get(`/`, auth, auth.checkRole(['Patient', 'Hospital', 'Admin']), async (r
         // Only show appointments that belong to this hospital
         query = { hospitalemail: { $regex: new RegExp('^' + req.user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } };
     }
-    const appointmentList = await Appointment.find(query);
+    const appointmentList = await Appointment.find(query)
+      .populate('patient', '-passwordHash')
+      .populate('hospital', '-passwordHash');
     await logEvent(req.user.email, req.user.role, 'VIEW_APPOINTMENT_LIST', 'SUCCESS');
     res.status(200).send(appointmentList);
   } catch (error) {
@@ -68,7 +70,9 @@ router.get(`/`, auth, auth.checkRole(['Patient', 'Hospital', 'Admin']), async (r
 // Get specific appointment by ID
 router.get('/:id', auth, async (req, res) => {
   try {
-    const appointment = await Appointment.findById(req.params.id);
+    const appointment = await Appointment.findById(req.params.id)
+      .populate('patient', '-passwordHash')
+      .populate('hospital', '-passwordHash');
     if (!appointment) {
       await logEvent(req.user.email, req.user.role, 'VIEW_APPOINTMENT', 'DENIED', `Not found: ${req.params.id}`);
       return res.status(404).json({ success: false, message: 'Appointment not found!' });
@@ -124,8 +128,21 @@ router.post('/', auth, auth.checkRole(['Patient']), validateBody(appointmentSche
       return res.status(400).json({ message: 'The selected time slot is already booked.' });
     }
 
+    const { User } = require('../models/user');
+    const patientUser = await User.findOne({ email: { $regex: new RegExp('^' + patemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+    const hospitalUser = await User.findOne({ email: { $regex: new RegExp('^' + hospitalemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+
+    if (!patientUser) {
+      return res.status(400).json({ message: 'Patient account not found.' });
+    }
+    if (!hospitalUser) {
+      return res.status(400).json({ message: 'Hospital account not found.' });
+    }
+
     // Create new appointment
     const newAppointment = new Appointment({
+      patient: patientUser._id,
+      hospital: hospitalUser._id,
       patemail,
       hospitalemail,
       patient_name,

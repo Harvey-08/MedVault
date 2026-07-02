@@ -19,6 +19,12 @@ router.post('/request', auth, auth.checkRole(['Hospital']), validateBody(consent
             return res.status(404).json({ success: false, error: 'Patient email not found.' });
         }
 
+        // Resolve hospital user
+        const hospital = await User.findOne({ email: { $regex: new RegExp('^' + hospitalEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+        if (!hospital) {
+            return res.status(404).json({ success: false, error: 'Hospital account not found.' });
+        }
+
         // Check if a consent mapping already exists
         let consent = await Consent.findOne({
             patientEmail: { $regex: new RegExp('^' + patientEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
@@ -27,10 +33,14 @@ router.post('/request', auth, auth.checkRole(['Hospital']), validateBody(consent
         if (consent) {
             // Re-request access
             consent.status = 'Pending';
+            consent.patient = patient._id;
+            consent.hospital = hospital._id;
             consent.updatedAt = Date.now();
             await consent.save();
         } else {
             consent = new Consent({
+                patient: patient._id,
+                hospital: hospital._id,
                 patientEmail: patient.email,
                 hospitalEmail,
                 status: 'Pending'
@@ -51,6 +61,17 @@ router.post('/grant', auth, auth.checkRole(['Patient']), validateBody(consentAct
         const { hospitalEmail } = req.body;
         const patientEmail = req.user.email;
 
+        // Retrieve hospital and patient User documents
+        const hospital = await User.findOne({ email: { $regex: new RegExp('^' + hospitalEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+        const patient = await User.findOne({ email: { $regex: new RegExp('^' + patientEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+        
+        if (!hospital) {
+            return res.status(404).json({ success: false, error: 'Hospital account not found.' });
+        }
+        if (!patient) {
+            return res.status(404).json({ success: false, error: 'Patient account not found.' });
+        }
+
         let consent = await Consent.findOne({
             patientEmail: { $regex: new RegExp('^' + patientEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
             hospitalEmail: { $regex: new RegExp('^' + hospitalEmail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') }
@@ -58,12 +79,16 @@ router.post('/grant', auth, auth.checkRole(['Patient']), validateBody(consentAct
         if (!consent) {
             // If hospital hasn't requested but patient explicitly wants to grant
             consent = new Consent({
+                patient: patient._id,
+                hospital: hospital._id,
                 patientEmail,
                 hospitalEmail,
                 status: 'Granted'
             });
         } else {
             consent.status = 'Granted';
+            consent.patient = patient._id;
+            consent.hospital = hospital._id;
             consent.updatedAt = Date.now();
         }
 
@@ -135,8 +160,74 @@ router.get('/status', auth, auth.checkRole(['Patient', 'Hospital', 'Admin']), as
             query = { hospitalEmail: { $regex: new RegExp('^' + req.user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } };
         }
 
-        const consents = await Consent.find(query);
+        const consents = await Consent.find(query)
+            .populate('patient', '-passwordHash')
+            .populate('hospital', '-passwordHash');
         res.status(200).json(consents);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// GET /fhir/:id - Export consent record in HL7 FHIR v4 Consent format
+router.get('/fhir/:id', auth, async (req, res) => {
+    try {
+        const consent = await Consent.findById(req.params.id);
+        if (!consent) {
+            await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_CONSENT', 'DENIED', `Not found: ${req.params.id}`);
+            return res.status(404).json({ success: false, message: 'Consent record not found!' });
+        }
+
+        // Access check: Admin, the patient, or the hospital
+        const isPatient = req.user.email && consent.patientEmail && req.user.email.toLowerCase() === consent.patientEmail.toLowerCase();
+        const isHospital = req.user.email && consent.hospitalEmail && req.user.email.toLowerCase() === consent.hospitalEmail.toLowerCase();
+
+        if (req.user.role !== 'Admin' && !isPatient && !isHospital) {
+            await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_CONSENT', 'DENIED', `Unauthorized export attempt for ID: ${req.params.id}`);
+            return res.status(403).json({ success: false, error: 'Access denied.' });
+        }
+
+        const fhirConsent = {
+            resourceType: "Consent",
+            id: consent._id.toString(),
+            status: consent.status === 'Granted' ? 'active' : 'inactive',
+            scope: {
+                coding: [
+                    {
+                        system: "http://terminology.hl7.org/CodeSystem/consentscope",
+                        code: "patient-privacy"
+                    }
+                ]
+            },
+            category: [
+                {
+                    coding: [
+                        {
+                            system: "http://terminology.hl7.org/CodeSystem/v3-ActCode",
+                            code: "IDSCL"
+                        }
+                    ],
+                    text: "Information Disclosure"
+                }
+            ],
+            patient: {
+                reference: `Patient/${consent.patient ? consent.patient.toString() : 'unknown'}`,
+                display: consent.patientEmail
+            },
+            dateTime: consent.updatedAt ? new Date(consent.updatedAt).toISOString() : new Date(consent.requestedAt).toISOString(),
+            organization: [
+                {
+                    reference: `Organization/${consent.hospital ? consent.hospital.toString() : 'unknown'}`,
+                    display: consent.hospitalEmail
+                }
+            ],
+            provision: {
+                type: consent.status === 'Granted' ? 'permit' : 'deny'
+            }
+        };
+
+        await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_CONSENT', 'SUCCESS', `Exported Consent ID: ${consent._id}`);
+        res.status(200).json(fhirConsent);
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

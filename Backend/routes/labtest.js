@@ -70,7 +70,10 @@ router.get('/', auth, auth.checkRole(['Patient', 'Hospital', 'Lab', 'Admin']), a
       };
     }
     
-    const labtestList = await Labtest.find(query);
+    const labtestList = await Labtest.find(query)
+      .populate('patient', '-passwordHash')
+      .populate('hospital', '-passwordHash')
+      .populate('lab', '-passwordHash');
     await logEvent(req.user.email, req.user.role, 'VIEW_LABTEST_LIST', 'SUCCESS');
     res.status(200).send(labtestList);
   } catch (error) {
@@ -82,7 +85,10 @@ router.get('/', auth, auth.checkRole(['Patient', 'Hospital', 'Lab', 'Admin']), a
 // Get specific labtest by ID
 router.get('/:id', auth, async (req, res) => {
   try {
-    const labtest = await Labtest.findById(req.params.id);
+    const labtest = await Labtest.findById(req.params.id)
+      .populate('patient', '-passwordHash')
+      .populate('hospital', '-passwordHash')
+      .populate('lab', '-passwordHash');
     if (!labtest) {
       await logEvent(req.user.email, req.user.role, 'VIEW_LABTEST', 'DENIED', `Not found: ${req.params.id}`);
       return res.status(404).json({ success: false, message: 'Labtest not found!' });
@@ -133,10 +139,28 @@ router.post('/', auth, auth.checkRole(['Lab']), upload.single('report'), validat
       return res.status(403).json({ success: false, error: 'Access denied. Lab email mismatch.' });
     }
     
+    const { User } = require('../models/user');
+    const patientUser = await User.findOne({ email: { $regex: new RegExp('^' + req.body.patemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+    const hospitalUser = await User.findOne({ email: { $regex: new RegExp('^' + req.body.hospitalemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+    const labUser = await User.findOne({ email: { $regex: new RegExp('^' + req.body.labemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
+
+    if (!patientUser) {
+      return res.status(400).json({ success: false, error: 'Patient account not found.' });
+    }
+    if (!hospitalUser) {
+      return res.status(400).json({ success: false, error: 'Hospital account not found.' });
+    }
+    if (!labUser) {
+      return res.status(400).json({ success: false, error: 'Lab Technician account not found.' });
+    }
+
     const fileName = file.filename;
     const basePath = `${req.protocol}://${req.get('host')}/public/uploads/`;
 
     let labtest = new Labtest({
+        patient: patientUser._id,
+        hospital: hospitalUser._id,
+        lab: labUser._id,
         patemail: req.body.patemail,
         labemail: req.body.labemail,
         hospitalemail: req.body.hospitalemail,
@@ -257,6 +281,66 @@ router.put('/upload_image/:id', auth, auth.checkRole(['Lab']), upload.single('re
     }
     res.status(500).json({ success: false, error: error.message });
   }
+});
+
+// GET /fhir/:id - Export lab report in HL7 FHIR v4 Observation format
+router.get('/fhir/:id', auth, async (req, res) => {
+    try {
+        const labtest = await Labtest.findById(req.params.id);
+        if (!labtest) {
+            await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_LABTEST', 'DENIED', `Not found: ${req.params.id}`);
+            return res.status(404).json({ success: false, message: 'Labtest not found!' });
+        }
+
+        // Access check
+        let hasConsent = false;
+        if (req.user.role === 'Hospital') {
+            const consent = await Consent.findOne({
+                patientEmail: { $regex: new RegExp('^' + labtest.patemail.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+                hospitalEmail: { $regex: new RegExp('^' + req.user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+                status: 'Granted'
+            });
+            hasConsent = !!consent;
+        }
+
+        const isPatient = req.user.email && labtest.patemail && req.user.email.toLowerCase() === labtest.patemail.toLowerCase();
+        const isLab = req.user.email && labtest.labemail && req.user.email.toLowerCase() === labtest.labemail.toLowerCase();
+        const isHospital = req.user.email && labtest.hospitalemail && req.user.email.toLowerCase() === labtest.hospitalemail.toLowerCase();
+
+        if (req.user.role !== 'Admin' && !isPatient && !isLab && !isHospital && !hasConsent) {
+            await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_LABTEST', 'DENIED', `Unauthorized export attempt for ID: ${req.params.id}`);
+            return res.status(403).json({ success: false, error: 'Access denied. Consent required.' });
+        }
+
+        const fhirObservation = {
+            resourceType: "Observation",
+            id: labtest._id.toString(),
+            status: "final",
+            code: {
+                text: labtest.test_name
+            },
+            subject: {
+                reference: `Patient/${labtest.patient ? labtest.patient.toString() : 'unknown'}`,
+                display: labtest.patient_name
+            },
+            performer: [
+                {
+                    reference: `Practitioner/${labtest.lab ? labtest.lab.toString() : 'unknown'}`,
+                    display: labtest.labemail
+                }
+            ],
+            valueString: `Value Level: ${labtest.level}. Normal Reference Range: ${labtest.range}. Patient Value: ${labtest.actual_range}.`,
+            effectiveDateTime: new Date(labtest.date).toISOString(),
+            device: {
+                display: `Hospital Organization Reference: ${labtest.hospitalemail}`
+            }
+        };
+
+        await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_LABTEST', 'SUCCESS', `Exported Labtest ID: ${labtest._id}`);
+        res.status(200).json(fhirObservation);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 module.exports = router;

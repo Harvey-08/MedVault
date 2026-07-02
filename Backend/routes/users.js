@@ -190,7 +190,7 @@ router.get('/:id', auth, async (req, res) => {
 // Create a new user (Registration)
 router.post('/', validateBody(registerSchema), async (req, res) => {
     try {
-        const { name, email, password, phone, role, city, question1, question2, status } = req.body;
+        const { name, email, password, phone, role, city, question1, question2, status, agreedToPrivacyPolicy } = req.body;
         
         // Check if email already exists (case-insensitive)
         const existingUser = await User.findOne({ email: { $regex: new RegExp('^' + email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } });
@@ -209,6 +209,7 @@ router.post('/', validateBody(registerSchema), async (req, res) => {
             question1,
             question2,
             status,
+            agreedToPrivacyPolicy
         });
 
         const savedUser = await user.save();
@@ -240,6 +241,7 @@ router.post('/lab', validateBody(labRegisterSchema), async (req, res) => {
             role,
             city,
             hospitalemail,
+            agreedToPrivacyPolicy: true
         });
 
         const savedUser = await user.save();
@@ -512,5 +514,70 @@ router.post('/change_password', validateBody(changePasswordSchema), async (req, 
 });
 
 
+
+// GET /fhir/patient/:id - Export patient data in HL7 FHIR v4 Patient format
+router.get('/fhir/patient/:id', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ success: false, error: 'User not found' });
+        }
+        
+        let authorized = false;
+        if (req.user.role === 'Admin') {
+            authorized = true;
+        } else if (user.email.toLowerCase() === req.user.email.toLowerCase()) {
+            authorized = true;
+        } else if (req.user.role === 'Hospital') {
+            const { Consent } = require('../models/consent');
+            const consent = await Consent.findOne({
+                patientEmail: { $regex: new RegExp('^' + user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+                hospitalEmail: { $regex: new RegExp('^' + req.user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') },
+                status: 'Granted'
+            });
+            if (consent) authorized = true;
+        }
+
+        if (!authorized) {
+            await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_PATIENT', 'DENIED', `Unauthorized export attempt for user: ${user.email}`);
+            return res.status(403).json({ success: false, error: 'Access denied. Unauthorized to view this patient.' });
+        }
+
+        const fhirPatient = {
+            resourceType: "Patient",
+            id: user._id.toString(),
+            active: user.status === 'Approved',
+            name: [
+                {
+                    use: "official",
+                    text: user.name
+                }
+            ],
+            telecom: [
+                {
+                    system: "phone",
+                    value: user.phone,
+                    use: "mobile"
+                },
+                {
+                    system: "email",
+                    value: user.email,
+                    use: "home"
+                }
+            ],
+            address: [
+                {
+                    use: "home",
+                    city: user.city || ""
+                }
+            ]
+        };
+
+        await logEvent(req.user.email, req.user.role, 'FHIR_EXPORT_PATIENT', 'SUCCESS', `Exported Patient ID: ${user._id}`);
+        res.status(200).json(fhirPatient);
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 module.exports = router;

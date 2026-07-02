@@ -36,6 +36,21 @@ router.get(`/`, async (req, res) => {
 });
 
 
+// GET /my-hospital - Retrieve the logged-in hospital's profile (even if Pending approval)
+router.get('/my-hospital', auth, async (req, res) => {
+    try {
+        const hospital = await Hospital.findOne({ 
+            hospitalemail: { $regex: new RegExp('^' + req.user.email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i') } 
+        });
+        if (!hospital) {
+            return res.status(404).json({ success: false, message: 'Hospital profile not found.' });
+        }
+        res.status(200).send(hospital);
+    } catch (error) {
+        console.error('Error fetching own hospital:', error.message);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+});
 
 
 router.get(`/:id`, async (req, res) =>{
