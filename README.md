@@ -13,31 +13,42 @@ flowchart TD
         Admin["Admins"]
     end
 
-    Users --> Frontend["React + Vite Frontend"]
+    Patient --> Frontend["React + Vite Frontend"]
+    Hospital --> Frontend
+    LabTech --> Frontend
+    Admin --> Frontend
 
     subgraph Security_Gateways ["Security & Middleware Gateways"]
-        Frontend --> JWT["JWT Authentication Layer"]
+        Frontend --> CORS["Restricted CORS Security"]
+        CORS --> Helmet["Helmet Secure Headers"]
+        Helmet --> RateLimit["Login Rate Limiter"]
+        RateLimit --> JWT["JWT Authentication Layer"]
         JWT --> RBAC["RBAC Authorization Layer"]
         RBAC --> ConsentMgmt["Consent Management Layer"]
         ConsentMgmt --> JoiVal["Joi Validation Layer"]
     end
 
-    subgraph Backend_Logic ["Business Logic & Clinical Safety Layers"]
-        JoiVal --> Controllers["Business Logic Layer (Controllers)"]
+    subgraph Backend_Logic ["Business Logic & Interoperability Layers"]
+        JoiVal --> Controllers["Business Logic Layer (Routes)"]
+        JoiVal --> FHIR["HL7 FHIR Interoperability API"]
         
         subgraph Clinical_Safety ["Clinical Safety Layer"]
             DrugCheck["Drug Interaction Checker"]
             LabDetect["Abnormal Lab Detection"]
         end
         
-        Controllers --> Clinical_Safety
+        Controllers --> DrugCheck
+        Controllers --> LabDetect
         Controllers --> AuditLog["Audit Logging Layer"]
         Controllers --> Encryption["AES-256-GCM Encryption Layer"]
+        FHIR --> AuditLog
     end
 
-    Clinical_Safety --> MongoDB[("MongoDB Database")]
-    AuditLog --> MongoDB
-    Encryption --> MongoDB
+    DrugCheck --> Indexes["Compound Query Indexes"]
+    LabDetect --> Indexes
+    Encryption --> Indexes
+    AuditLog --> Indexes
+    Indexes --> MongoDB[("MongoDB Database")]
 
     subgraph DB_Collections ["Database Collections"]
         MongoDB --> ColUsers["Users"]
@@ -71,6 +82,13 @@ flowchart TD
 - **Audit Logging:** Records database modifications and authorization events.
 - **Consent Management:** Handles consent workflows for medical records.
 - **Consent Grant/Revoke Workflow:** Allows patients to delegate or rescind access to their data.
+- **GDPR & HIPAA Registration Checkbox:** Enforces dynamic patient and hospital consent agreement validation upon sign-up.
+- **Vite React Route Guards:** Protects client-side dashboard panels using custom `ProtectedRoute` wrappers.
+- **HTTP Secure Headers:** Mitigates common web vulnerabilities like XSS, MIME-sniffing, and clickjacking.
+- **Secure CORS Origin Policy:** Restricts server API cross-origin requests exclusively to the frontend client development origin.
+- **Centralized Error Middleware:** Uniformly intercepts backend exceptions and outputs consistent payload contracts.
+- **HL7 FHIR Interoperability API:** Exposes standardized compliance resource endpoints (`Patient`, `MedicationRequest`, `Observation`, `Consent` resources) for integration with medical EHR software.
+- **Database Index Optimization:** Added compound query indexes on patient-hospital fields in Mongoose models to optimize clinical timeline fetching.
 
 ### Healthcare Enhancements
 - **Unified Medical Timeline:** Chronological view of patient encounters, prescriptions, and lab tests.
@@ -103,6 +121,7 @@ MedVault/
 │   ├── helpers/                                      # Utility helper and middleware functions
 │   │   ├── auditLogger.js                            # Helper functions for logging security-relevant actions to audit log database
 │   │   ├── drugChecker.js                            # Helper function for verifying compatibility of drug combinations
+│   │   ├── errorHandler.js                           # Global Express error-handling middleware
 │   │   ├── jwt.js                                    # JWT validation and creation middleware
 │   │   └── validation.js                             # Helper validation logic for requests and data input
 │   ├── models/                                       # Mongoose database models and schemas
@@ -168,6 +187,7 @@ MedVault/
 │       │   ├── PostLabReg.jsx                        # Form to register a lab technician account
 │       │   ├── PostLabtest.jsx                       # Form to upload a new laboratory test record
 │       │   ├── PostPrescription.jsx                  # Form to write and post a patient prescription
+│       │   ├── ProtectedRoute.jsx                    # Route Guard wrapper component for client-side page security
 │       │   ├── ResetPassword.jsx                     # Component for password reset forms
 │       │   ├── Title.jsx                             # Title bar/header layout component
 │       │   ├── UpdateBilling.jsx                     # Form to edit/update billing information
@@ -267,6 +287,21 @@ Start the development server:
 npm run dev
 ```
 The app will be available at `http://localhost:5173/`.
+
+---
+
+## Future Enhancements
+
+MedVault is designed with extensibility in mind. The following enhancements are planned for future releases to support production scale and advanced clinical operations:
+
+
+### 1. Clinical Interoperability & Medical Safety
+* **Bidirectional HL7 FHIR Integration:** Implement full data synchronization support, allowing external EMR/EHR clients to write records back to MedVault instead of only read-only FHIR exports.
+* **Drug-Allergy Contraindication Engine:** Query patient history dynamically during prescription creation to catch drug-allergy interactions.
+
+### 2. AI & Telemedicine Portal
+* **AI-Powered Clinical Summarization:** Integrate a secure Medical LLM (such as Med-PaLM) to automatically summarize patient chronological histories and translate complex clinical notes/prescriptions into patient-friendly language.
+* **WebRTC-Powered Telehealth Rooms:** Build secure live-video consultation dashboards and real-time chat using WebRTC and Socket.io to allow remote consultations directly on the platform.
 
 ---
 *MedVault - Modern Healthcare Solution*
