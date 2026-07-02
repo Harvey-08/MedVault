@@ -19,7 +19,8 @@ const registerSchema = Joi.object({
   city: Joi.string().allow('', null),
   question1: Joi.string().required(),
   question2: Joi.string().required(),
-  status: Joi.string().allow('', null)
+  status: Joi.string().allow('', null),
+  agreedToPrivacyPolicy: Joi.boolean().valid(true).required()
 });
 
 const labRegisterSchema = Joi.object({
