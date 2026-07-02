@@ -2,6 +2,16 @@ const mongoose = require('mongoose');
 
 // vendoremail  useremail  complaint mobile lat long status
 const feedbackSchema = mongoose.Schema({
+    patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    hospital: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
     patemail: {
         type: String,
         required: true,    

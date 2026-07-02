@@ -3,6 +3,16 @@ const { encrypt, decrypt } = require('../utils/encryption');
 
 // Schema definition
 const prescriptionSchema = mongoose.Schema({
+    patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    hospital: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
     patemail: {
         type: String,
         required: true,    
@@ -62,6 +72,8 @@ const prescriptionSchema = mongoose.Schema({
         default: new Date().toISOString(),
     }
 });
+
+prescriptionSchema.index({ patient: 1, hospital: 1 });
 
 prescriptionSchema.virtual('id').get(function () {
     return this._id.toHexString();

@@ -2,6 +2,16 @@ const mongoose = require('mongoose');
 const { encrypt, decrypt } = require('../utils/encryption');
 
 const appointmentSchema = mongoose.Schema({
+    patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    hospital: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
     patemail: {
         type: String,
         required: true,    
@@ -52,6 +62,8 @@ const appointmentSchema = mongoose.Schema({
         default: Date.now,
     }
 });
+
+appointmentSchema.index({ patient: 1, hospital: 1 });
 
 appointmentSchema.virtual('id').get(function () {
     return this._id.toHexString();

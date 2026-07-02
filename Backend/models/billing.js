@@ -2,6 +2,16 @@
 const mongoose = require('mongoose');
 
 const billingSchema = mongoose.Schema({
+    patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    hospital: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
     patemail: {
         type: String,
         required: true,    
@@ -39,6 +49,7 @@ const billingSchema = mongoose.Schema({
     }
 })
 
+billingSchema.index({ patient: 1, hospital: 1 });
 
 billingSchema.virtual('id').get(function () {
     return this._id.toHexString();

@@ -1,6 +1,16 @@
 const mongoose = require('mongoose');
 
 const consentSchema = mongoose.Schema({
+    patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    hospital: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
     patientEmail: {
         type: String,
         required: true,
@@ -26,6 +36,8 @@ const consentSchema = mongoose.Schema({
         default: Date.now
     }
 });
+
+consentSchema.index({ patient: 1, hospital: 1 });
 
 consentSchema.virtual('id').get(function () {
     return this._id.toHexString();

@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
     status: {
         type: String,
         default: 'Pending',
+    },
+    agreedToPrivacyPolicy: {
+        type: Boolean,
+        required: true,
+        default: false
     }
 });
 

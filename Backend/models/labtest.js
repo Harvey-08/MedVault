@@ -2,6 +2,21 @@ const mongoose = require('mongoose');
 const { encrypt, decrypt } = require('../utils/encryption');
 
 const labtestSchema = mongoose.Schema({
+    patient: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    hospital: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
+    lab: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+    },
     patemail: {
         type: String,
         required: true,    
@@ -53,6 +68,8 @@ const labtestSchema = mongoose.Schema({
         default: Date.now,
     }
 });
+
+labtestSchema.index({ patient: 1, hospital: 1, lab: 1 });
 
 labtestSchema.virtual('id').get(function () {
     return this._id.toHexString();
