@@ -5,13 +5,19 @@ const mongoose = require('mongoose');
 mongoose.pluralize(null);
 mongoose.set('strictQuery', false);
 const cors = require('cors');
+const helmet = require('helmet');
 
 
 
 require('dotenv').config();
 
-app.use(cors());
-app.options('*', cors())
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true
+}));
+app.options('*', cors());
+
+app.use(helmet());
 
 //middleware
 app.use(express.json());
@@ -62,6 +68,10 @@ app.use(`${api}/billing`, billingRoutes);
 app.use(`${api}/labtest`, labtestRoutes);
 app.use(`${api}/prescription`, prescriptionRoutes);
 app.use(`${api}/consent`, consentRoutes);
+
+// Global Error Handler Middleware
+const errorHandler = require('./helpers/errorHandler');
+app.use(errorHandler);
 
 
 
