@@ -124,22 +124,25 @@ const LoadEdit = (id) => {
     const fetchHospitalData = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/v1/hospital/my-hospital`, {
           headers: {
             'x-auth-token': token
           }
         });
-        const data = await response.json();
-
-        // Retrieve hospitalemail from localStorage
-        const hospitalemail = localStorage.getItem('email') || '';
-         // Filter hospital data based on vendoremail
-         const filteredHospital = data.filter((hospital) => hospital.hospitalemail === hospitalemail);
-         setHospitalData(filteredHospital);
-         setFilteredData(filteredHospital);
-         setLoading(false);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setHospitalData([data]);
+          setFilteredData([data]);
+        } else {
+          setHospitalData([]);
+          setFilteredData([]);
+        }
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching hospital data:', error.message);
+        setHospitalData([]);
+        setFilteredData([]);
         setLoading(false);
       }
     };

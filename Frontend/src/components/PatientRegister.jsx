@@ -19,6 +19,7 @@ const PatientRegister = () => {
     role: 'Patient',  // Default role
     question1: '',
     question2: '',
+    agreedToPrivacyPolicy: false,
   });
 
   const [validationErrors, setValidationErrors] = useState({});
@@ -39,10 +40,10 @@ const PatientRegister = () => {
   }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setUserData(prevData => ({
       ...prevData,
-      [name]: value,
+      [name]: type === 'checkbox' ? checked : value,
     }));
 
     setValidationErrors(prevErrors => ({
@@ -67,6 +68,11 @@ const PatientRegister = () => {
 
     if (existingEmails.includes(userData.email.toLowerCase())) {
       errors.email = 'Email already exists';
+      isValid = false;
+    }
+
+    if (!userData.agreedToPrivacyPolicy) {
+      errors.agreedToPrivacyPolicy = 'You must accept the Privacy Policy to register';
       isValid = false;
     }
 
@@ -159,6 +165,21 @@ const PatientRegister = () => {
                   <span>What is your school best friend name?</span>
                   <label htmlFor="question2"><i className="lni lni-arrow-right"></i></label>
                   <input className="form-control" name="question2" id="question2" value={userData.question2} onChange={handleChange} type="text" placeholder="Enter the answer" />
+                </div>
+
+                {validationErrors.agreedToPrivacyPolicy && <p style={{ color: 'white' }}>{validationErrors.agreedToPrivacyPolicy}</p>}
+                <div className="form-check text-start mb-4 ms-1" style={{ color: 'white' }}>
+                  <input 
+                    className="form-check-input" 
+                    type="checkbox" 
+                    name="agreedToPrivacyPolicy" 
+                    id="agreedToPrivacyPolicy" 
+                    checked={userData.agreedToPrivacyPolicy} 
+                    onChange={handleChange} 
+                  />
+                  <label className="form-check-label" htmlFor="agreedToPrivacyPolicy" style={{ fontSize: '13px', cursor: 'pointer' }}>
+                    I agree to the GDPR & HIPAA privacy policy and consent to the secure storage and GCM encryption of my records.
+                  </label>
                 </div>
 
                 <button className="btn btn-warning btn-lg w-100" type="submit">Sign Up</button>

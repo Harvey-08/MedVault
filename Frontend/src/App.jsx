@@ -6,6 +6,7 @@ import 'bootstrap/dist/js/bootstrap.bundle.min.js';  // Import JavaScript for dr
 import { Routes, Route, Link, BrowserRouter } from "react-router-dom";
 
 import Index from './components/Index';
+import ProtectedRoute from './components/ProtectedRoute';
 import AdminHome from './components/AdminHome';
 import HospitalRegister from  "./components/HospitalRegister";
 import PatientRegister from  "./components/PatientRegister";
@@ -87,79 +88,72 @@ function App() {
       <BrowserRouter>
         <Routes>
     
+          {/* Public Routes */}
           <Route path='/' element={<Index />} />
-          <Route path='/consent_settings' element={<ConsentSettings />} />
-          <Route path='/view_audit_logs' element={<ViewAuditLogs />} />
-          <Route path='/admin_profile' element={<AdminProfile />} />
-            <Route path='/update_labuser/:id' element={<UpdateLabuser />} />
-        
-            
-            <Route path='/edit_hospitalprofile/:id' element={<EditHospitalProfile />} />
-            <Route path='/edit_adminprofile/:id' element={<EditAdminProfile />} />
-          
-            <Route path='/edit_patientprofile/:id' element={<EditPatientProfile />} />
-         
-            <Route path='/hospital_profile' element={<HospitalProfile/>}/>
-          
-            <Route path='/lab_home' element={<LabHome/>}/>
-            
-            <Route path='/admin_home' element={<AdminHome/>} />
-            <Route path='/logout' element={<Logout/>} />
-            <Route path='/post_appointment' element={<PostAppointment/>}/>
-            <Route path='/post_billing' element={<PostBilling/>}/>
-            <Route path='/post_hospital' element={<PostHospital/>}/>
-            <Route path='/post_lab_reg' element={<PostLabReg/>}/>
+          <Route path='/login' element={<Login />} />
+          <Route path='/admin_login' element={<AdminLogin />} />
+          <Route path='/lab_login' element={<LabLogin />} />
+          <Route path='/patient_register' element={<PatientRegister />} />
+          <Route path='/hospital_register' element={<HospitalRegister />} />
+          <Route path='/reset_password' element={<ResetPassword/>} />
 
-            <Route path='/post_labtest' element={<PostLabtest/>}/>
-            <Route path='/post_prescription' element={<PostPrescription/>}/>
-        
-            <Route path='/update_billing/:id' element={<UpdateBilling/>}/>
-       
-            <Route path='/upload_lab_image/:id' element={<UploadLabImage />} />
-         
-            <Route path='/update_hospital/:id' element={<UpdateHospital/>}/>
-            <Route path='/update_prescription/:id' element={<UpdatePrescription/>}/>
-           
-            <Route path='/patient_home' element={<PatientHome/>} />
-            <Route path='/patient_profile' element={<PatientProfile/>}/>
-           <Route path='/view_all_hospital' element={<ViewAllHospital/>} />
-           <Route path='/view_patient_history' element={<ViewPatientHistory/>} />
-            <Route path='/view_all_prescription' element={<ViewAllPrescription/>} />
-            <Route path='/update_status_appointment/:id' element={<UpdateStatusAppointment/>} />
-              <Route path='/hospital_register' element={<HospitalRegister />} />
-              <Route path='/patient_register' element={<PatientRegister />} />
-              <Route path='/lab_login' element={<LabLogin />} />
-              <Route path='/lab_profile' element={<LabProfile/>}/>
-       
-              <Route path='/admin_login' element={<AdminLogin />} />
-        
-            <Route path='/login' element={<Login />} />
-            <Route path='/reset_password' element={<ResetPassword/>} />
-            <Route path='/change_password' element={<ChangePassword/>} />
-            <Route path='/hospital_home' element={<HospitalHome />} />
-            <Route path='/update_status_admin/:id' element={<UpdateStatusAdmin />} />
-            <Route path='/view_appointment' element={<ViewAppointment />} />
-            <Route path='/view_prescription' element={<ViewPrescription />} />
-            <Route path='/view_billing' element={<ViewBilling />} />
-            <Route path='/view_labtest' element={<ViewLabtest />} />
-            <Route path='/view_lab_user' element={<ViewLabUser />} />
-         
-            <Route path='/view_my_billing' element={<ViewMyBilling />} />
-            <Route path='/view_my_appointment' element={<ViewMyAppointment />} />
-            <Route path='/view_my_labtest' element={<ViewMyLabtest />} />
-            <Route path='/view_patient_labtest' element={<ViewPatientLabtest />} />
-            
-            <Route path='/view_my_prescription' element={<ViewMyPrescription />} />
-            <Route path='/more_info/:id' element={<MoreInfo />} />
-            <Route path='/more_info_patient/:id' element={<MoreInfoPatient />} />
-        
-            <Route path='/view_my_hospital' element={<ViewMyHospital />} />
-       
-            <Route path='/view_user_admin' element={<ViewUserAdmin />} />
-           
-            <Route path='/view_hospital_admin' element={<ViewHospitalAdmin />} />
-            <Route path='/post_feedback' element={<PostFeedback />} />
-            <Route path='/view_my_feedback' element={<ViewMyFeedback />} />
+          {/* Patient Routes */}
+          <Route path='/patient_home' element={<ProtectedRoute allowedRoles={['Patient']}><PatientHome /></ProtectedRoute>} />
+          <Route path='/patient_profile' element={<ProtectedRoute allowedRoles={['Patient']}><PatientProfile /></ProtectedRoute>} />
+          <Route path='/edit_patientprofile/:id' element={<ProtectedRoute allowedRoles={['Patient']}><EditPatientProfile /></ProtectedRoute>} />
+          <Route path='/consent_settings' element={<ProtectedRoute allowedRoles={['Patient']}><ConsentSettings /></ProtectedRoute>} />
+          <Route path='/view_patient_history' element={<ProtectedRoute allowedRoles={['Patient', 'Hospital']}><ViewPatientHistory /></ProtectedRoute>} />
+          <Route path='/post_appointment' element={<ProtectedRoute allowedRoles={['Patient']}><PostAppointment /></ProtectedRoute>} />
+          <Route path='/view_my_appointment' element={<ProtectedRoute allowedRoles={['Patient']}><ViewMyAppointment /></ProtectedRoute>} />
+          <Route path='/view_my_billing' element={<ProtectedRoute allowedRoles={['Patient']}><ViewMyBilling /></ProtectedRoute>} />
+          <Route path='/view_my_labtest' element={<ProtectedRoute allowedRoles={['Patient', 'Lab', 'Hospital', 'Admin']}><ViewMyLabtest /></ProtectedRoute>} />
+          <Route path='/view_my_prescription' element={<ProtectedRoute allowedRoles={['Patient']}><ViewMyPrescription /></ProtectedRoute>} />
+          <Route path='/view_my_hospital' element={<ProtectedRoute allowedRoles={['Patient', 'Hospital']}><ViewMyHospital /></ProtectedRoute>} />
+          <Route path='/post_feedback' element={<ProtectedRoute allowedRoles={['Patient']}><PostFeedback /></ProtectedRoute>} />
+          <Route path='/view_my_feedback' element={<ProtectedRoute allowedRoles={['Patient', 'Hospital', 'Admin']}><ViewMyFeedback /></ProtectedRoute>} />
+
+          {/* Hospital Routes */}
+          <Route path='/hospital_home' element={<ProtectedRoute allowedRoles={['Hospital']}><HospitalHome /></ProtectedRoute>} />
+          <Route path='/hospital_profile' element={<ProtectedRoute allowedRoles={['Hospital']}><HospitalProfile /></ProtectedRoute>} />
+          <Route path='/edit_hospitalprofile/:id' element={<ProtectedRoute allowedRoles={['Hospital']}><EditHospitalProfile /></ProtectedRoute>} />
+          <Route path='/post_hospital' element={<ProtectedRoute allowedRoles={['Hospital']}><PostHospital /></ProtectedRoute>} />
+          <Route path='/post_billing' element={<ProtectedRoute allowedRoles={['Hospital']}><PostBilling /></ProtectedRoute>} />
+          <Route path='/post_lab_reg' element={<ProtectedRoute allowedRoles={['Hospital']}><PostLabReg /></ProtectedRoute>} />
+          <Route path='/post_prescription' element={<ProtectedRoute allowedRoles={['Hospital']}><PostPrescription /></ProtectedRoute>} />
+          <Route path='/update_billing/:id' element={<ProtectedRoute allowedRoles={['Hospital']}><UpdateBilling /></ProtectedRoute>} />
+          <Route path='/update_hospital/:id' element={<ProtectedRoute allowedRoles={['Hospital']}><UpdateHospital /></ProtectedRoute>} />
+          <Route path='/update_prescription/:id' element={<ProtectedRoute allowedRoles={['Hospital']}><UpdatePrescription /></ProtectedRoute>} />
+          <Route path='/update_status_appointment/:id' element={<ProtectedRoute allowedRoles={['Hospital']}><UpdateStatusAppointment /></ProtectedRoute>} />
+          <Route path='/view_appointment' element={<ProtectedRoute allowedRoles={['Hospital']}><ViewAppointment /></ProtectedRoute>} />
+          <Route path='/view_prescription' element={<ProtectedRoute allowedRoles={['Hospital']}><ViewPrescription /></ProtectedRoute>} />
+          <Route path='/view_billing' element={<ProtectedRoute allowedRoles={['Hospital']}><ViewBilling /></ProtectedRoute>} />
+          <Route path='/view_lab_user' element={<ProtectedRoute allowedRoles={['Hospital']}><ViewLabUser /></ProtectedRoute>} />
+          <Route path='/more_info_patient/:id' element={<ProtectedRoute allowedRoles={['Hospital']}><MoreInfoPatient /></ProtectedRoute>} />
+
+          {/* Lab Routes */}
+          <Route path='/lab_home' element={<ProtectedRoute allowedRoles={['Lab']}><LabHome /></ProtectedRoute>} />
+          <Route path='/lab_profile' element={<ProtectedRoute allowedRoles={['Lab']}><LabProfile /></ProtectedRoute>} />
+          <Route path='/update_labuser/:id' element={<ProtectedRoute allowedRoles={['Lab']}><UpdateLabuser /></ProtectedRoute>} />
+          <Route path='/post_labtest' element={<ProtectedRoute allowedRoles={['Lab']}><PostLabtest /></ProtectedRoute>} />
+          <Route path='/upload_lab_image/:id' element={<ProtectedRoute allowedRoles={['Lab']}><UploadLabImage /></ProtectedRoute>} />
+          <Route path='/view_patient_labtest' element={<ProtectedRoute allowedRoles={['Patient', 'Lab']}><ViewPatientLabtest /></ProtectedRoute>} />
+
+          {/* Admin Routes */}
+          <Route path='/admin_home' element={<ProtectedRoute allowedRoles={['Admin']}><AdminHome /></ProtectedRoute>} />
+          <Route path='/admin_profile' element={<ProtectedRoute allowedRoles={['Admin']}><AdminProfile /></ProtectedRoute>} />
+          <Route path='/edit_adminprofile/:id' element={<ProtectedRoute allowedRoles={['Admin']}><EditAdminProfile /></ProtectedRoute>} />
+          <Route path='/view_audit_logs' element={<ProtectedRoute allowedRoles={['Admin']}><ViewAuditLogs /></ProtectedRoute>} />
+          <Route path='/view_all_prescription' element={<ProtectedRoute allowedRoles={['Admin', 'Lab']}><ViewAllPrescription /></ProtectedRoute>} />
+          <Route path='/view_user_admin' element={<ProtectedRoute allowedRoles={['Admin']}><ViewUserAdmin /></ProtectedRoute>} />
+          <Route path='/view_hospital_admin' element={<ProtectedRoute allowedRoles={['Admin']}><ViewHospitalAdmin /></ProtectedRoute>} />
+          <Route path='/update_status_admin/:id' element={<ProtectedRoute allowedRoles={['Admin']}><UpdateStatusAdmin /></ProtectedRoute>} />
+
+          {/* Shared Private Routes */}
+          <Route path='/change_password' element={<ProtectedRoute allowedRoles={['Patient', 'Hospital', 'Lab', 'Admin']}><ChangePassword /></ProtectedRoute>} />
+          <Route path='/logout' element={<ProtectedRoute allowedRoles={['Patient', 'Hospital', 'Lab', 'Admin']}><Logout /></ProtectedRoute>} />
+          <Route path='/view_all_hospital' element={<ProtectedRoute allowedRoles={['Patient', 'Admin']}><ViewAllHospital /></ProtectedRoute>} />
+          <Route path='/view_labtest' element={<ProtectedRoute allowedRoles={['Patient', 'Hospital', 'Lab', 'Admin']}><ViewLabtest /></ProtectedRoute>} />
+          <Route path='/more_info/:id' element={<ProtectedRoute allowedRoles={['Patient', 'Hospital', 'Lab', 'Admin']}><MoreInfo /></ProtectedRoute>} />
           </Routes>
         </BrowserRouter>
       </div>
