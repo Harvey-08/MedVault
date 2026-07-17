@@ -12,7 +12,7 @@ const helmet = require('helmet');
 require('dotenv').config();
 
 const allowedOrigins = process.env.FRONTEND_URL 
-    ? process.env.FRONTEND_URL.split(',') 
+    ? process.env.FRONTEND_URL.split(',').map(url => url.trim().replace(/\/$/, ''))
     : ['http://localhost:5173'];
 
 app.use(cors({
